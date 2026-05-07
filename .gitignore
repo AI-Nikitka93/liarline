@@ -1,0 +1,14 @@
+.env
+.env.local
+.env.*.local
+node_modules/
+.next/
+.playwright-mcp/
+test-results/
+.next-dev.*.log
+.liarline-dev*.log
+npm-debug.log*
+model-benchmark-results*.json
+_archive/
+liarline-dock-current.png
+public/ChatGPT Image*.png

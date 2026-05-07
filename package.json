@@ -1,0 +1,67 @@
+{
+  "name": "liarline",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "bench:models": "node tools/model-benchmark.mjs",
+    "test:npc-turn": "node tools/test-npc-turn.mjs",
+    "test:game-engine": "tsx tools/test-game-engine.mjs",
+    "test:live-suspects": "tsx tools/test-live-suspect-voices.mjs",
+    "test:ui-copy": "node tools/test-ui-copy.mjs",
+    "test:mobile-ui": "node tools/test-mobile-ui-contract.mjs",
+    "test:visual-dna": "node tools/test-visual-dna.mjs",
+    "test:visual-assets": "node tools/test-visual-assets.mjs",
+    "test:phase7": "tsx tools/test-phase7-fairness.mjs",
+    "test:phase7-polish": "tsx tools/test-phase7-polish.mjs",
+    "test:playstyles": "tsx tools/test-playstyles.mjs",
+    "test:release-readiness": "node tools/test-release-readiness.mjs",
+    "test:release-security": "node tools/test-release-security.mjs",
+    "test:public-docs": "node tools/test-public-docs-safe.mjs",
+    "test:project-hygiene": "node tools/test-project-hygiene.mjs",
+    "test:release-contracts": "tsx tools/test-release-contracts.mjs",
+    "test:release-monitoring": "tsx tools/test-release-monitoring.mjs",
+    "test:release-playthrough": "tsx tools/test-release-playthrough.mjs",
+    "test:release-browser": "playwright test tools/release-browser.spec.ts",
+    "test:release-ops": "tsx tools/test-release-ops.mjs",
+    "test:release-postlaunch": "tsx tools/test-release-postlaunch.mjs",
+    "test:judge-readiness": "node tools/test-judge-readiness.mjs",
+    "capture:release-screenshots": "tsx tools/capture-release-screenshots.ts",
+    "test:design-handoff": "tsx tools/test-design-handoff.mjs",
+    "test:demo-route": "tsx tools/test-demo-route.mjs",
+    "test:mobile-states": "node tools/test-mobile-screen-states.mjs",
+    "test:browser-smoke": "playwright test tools/mobile-browser-smoke.spec.ts",
+    "test:browser-phase7": "playwright test tools/phase7-browser.spec.ts",
+    "test:browser-phase7-polish": "playwright test tools/phase7-polish.spec.ts",
+    "collect:design-evidence": "node tools/collect-design-evidence.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.2.4",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "clsx": "^2.1.1",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.4",
+    "lucide-react": "^1.14.0",
+    "next": "^16.2.5",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tailwindcss": "^4.2.4",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
+  },
+  "overrides": {
+    "postcss": "^8.5.10"
+  }
+}
