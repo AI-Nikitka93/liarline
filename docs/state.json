@@ -3,9 +3,9 @@
   "current_task": "Harden the project toward a 100-point judge package with explicit Devpost artifact gates, self-starting browser tests, git readiness, and live-AI timeout tuning.",
   "status": "LOCAL_PACKAGE_READY_EXTERNAL_ARTIFACTS_REQUIRED",
   "active_step": "Phase 10 T201-T210 continues from a locally verified judge-readiness package: `npm run test:judge-readiness` passes in local mode and strict mode validates the three public URLs when provided.",
-  "next_step": "Finalize public deployment, public GitHub remote, and demo video URL, then run strict judge readiness with `LIARLINE_STRICT_SUBMISSION=1`.",
+  "next_step": "Upload the 1-3 minute demo video, set `LIARLINE_DEMO_VIDEO_URL`, and run strict judge readiness with the public URLs.",
   "blockers": [
-    "External Devpost artifacts are still required for a true 100 ceiling: public playable URL, public GitHub repository URL, and demo video URL."
+    "External demo video URL is still required for a true strict 100 ceiling."
   ],
   "artifacts": [
     "DESIGN.md",

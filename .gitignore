@@ -12,3 +12,5 @@ model-benchmark-results*.json
 _archive/
 liarline-dock-current.png
 public/ChatGPT Image*.png
+
+.vercel

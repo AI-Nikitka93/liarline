@@ -44,6 +44,10 @@ npm run test:judge-readiness
 
 Required for Devpost: a public HTTPS link that opens the game directly in a mobile browser with no app download.
 
+Current playable link:
+
+- https://liarline.vercel.app
+
 Acceptance:
 
 - Opens on a real phone or a 390px mobile viewport.
@@ -65,6 +69,10 @@ npm run test:browser-smoke
 
 Required for Devpost: public repo with current code.
 
+Current GitHub repository:
+
+- https://github.com/AI-Nikitka93/liarline
+
 Acceptance:
 
 - Repo is public before submission.
@@ -84,6 +92,10 @@ npm run test:project-hygiene
 ## Demo video
 
 Required for Devpost: 1-3 minutes showing the actual playable game.
+
+Current demo video URL:
+
+- Not uploaded yet. This remains the final external blocker for a true strict 100-point package.
 
 Required beats:
 

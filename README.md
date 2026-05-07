@@ -4,6 +4,8 @@ Liarline is a mobile-browser AI detective game built for Devpost AI Game Week.
 
 The hook is simple: AI suspects can lie, but only evidence can convict. The language model performs suspect dialogue, while the deterministic game engine keeps the hidden truth table, clue unlocks, accusation result, and win/loss logic under local control.
 
+Playable release: https://liarline.vercel.app
+
 ## Current Playable Scope
 
 - One polished detective case.
