@@ -52,7 +52,7 @@ async function requestLive(payload, attempts = 3) {
       if (result) failures.push(`local_api_${result.meta.fallbackReason || result.source}`);
       result = await handleNpcTurnPayload(payload, { timeoutMs: 15000 });
     }
-    if (result.source !== "groq" && ["network_error", "timeout"].includes(result.meta.fallbackReason || "")) {
+    if (result.source !== "groq" && ["network_error", "timeout", "fetch failed"].includes(result.meta.fallbackReason || "")) {
       result = await handleNpcTurnPayload(payload, { timeoutMs: 90000, fetchImpl: powershellFetch });
     }
     if (result.source === "groq") return result;

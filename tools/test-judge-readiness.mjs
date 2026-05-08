@@ -26,6 +26,28 @@ function getEnvUrl(name) {
   return value;
 }
 
+async function fetchText(url, label) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      redirect: "follow",
+      signal: controller.signal,
+      headers: {
+        "user-agent": "liarline-judge-readiness/1.0"
+      }
+    });
+    const text = await response.text();
+    assert.ok(response.ok, `${label} must respond with 2xx/3xx status, got ${response.status}`);
+    return text;
+  } catch (error) {
+    assert.fail(`${label} must be reachable in strict mode: ${error instanceof Error ? error.message : String(error)}`);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 const packageJson = readJson("package.json");
 const scripts = packageJson.scripts || {};
 const submissionPackage = await readFile("docs/SUBMISSION_PACKAGE.md", "utf8");
@@ -33,6 +55,7 @@ const submission = await readFile("docs/SUBMISSION.md", "utf8");
 const readme = await readFile("README.md", "utf8");
 const release = await readFile("docs/RELEASE.md", "utf8");
 const state = await readFile("docs/STATE.md", "utf8");
+const masterTodo = await readFile("docs/MASTER_TODO.md", "utf8");
 const playwrightConfig = await readFile("playwright.config.ts", "utf8");
 
 assert.equal(scripts["test:judge-readiness"], "node tools/test-judge-readiness.mjs");
@@ -75,7 +98,12 @@ for (const fragment of [
 
 assert.ok(readme.includes("npm run test:judge-readiness"), "README must expose the judge-readiness gate");
 assert.ok(release.includes("Judge readiness"), "RELEASE must include judge readiness");
-assert.ok(state.includes("T201-T210"), "STATE must keep the Phase 10 focus visible");
+assert.ok(state.includes("docs/MASTER_TODO.md"), "STATE must point at the active master TODO");
+assert.ok(state.includes("MASTER_TODO_REOPENED_WIN_PUSH_ACTIVE"), "STATE must expose the active win-push TODO status");
+assert.ok(masterTodo.includes("total ordinary tasks: 188"), "MASTER TODO must preserve the 188-task coverage check");
+assert.ok(masterTodo.includes("anchor tasks: 17"), "MASTER TODO must preserve anchor coverage");
+assert.ok(masterTodo.includes("AI answer quality"), "MASTER TODO must cover the AI quality win-push");
+assert.ok(masterTodo.includes("every-button visual/code proof"), "MASTER TODO must cover paired button proof");
 assert.ok(playwrightConfig.includes("webServer"), "Playwright must start the local server for browser release tests");
 assert.ok(playwrightConfig.includes("55046"), "Playwright config must preserve the release-browser base port");
 
@@ -96,6 +124,13 @@ if (strict) {
   assert.ok(externalChecks.playableUrl, "LIARLINE_PUBLIC_URL must be a public https URL in strict mode");
   assert.ok(externalChecks.githubUrl, "LIARLINE_GITHUB_URL must be a GitHub repo URL in strict mode");
   assert.ok(externalChecks.demoVideoUrl, "LIARLINE_DEMO_VIDEO_URL must be a supported video URL in strict mode");
+
+  const publicPage = await fetchText(external.playableUrl, "LIARLINE_PUBLIC_URL");
+  assert.ok(/Liarline|AI social deduction detective game/i.test(publicPage), "LIARLINE_PUBLIC_URL must render the Liarline app");
+  assert.ok(/first-question-cta|Задать первый вопрос|Ask first question/i.test(publicPage), "LIARLINE_PUBLIC_URL must expose the first playable action");
+
+  const githubPage = await fetchText(external.githubUrl, "LIARLINE_GITHUB_URL");
+  assert.ok(/AI-Nikitka93\/liarline|Mobile-browser AI detective game|Liarline/i.test(githubPage), "LIARLINE_GITHUB_URL must render the public Liarline repo");
 }
 
 console.log(JSON.stringify({

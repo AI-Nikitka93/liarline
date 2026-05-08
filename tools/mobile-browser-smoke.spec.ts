@@ -14,7 +14,23 @@ for (const width of [375, 390, 430]) {
 
     await page.setViewportSize({ width, height: 844 });
     await page.goto(baseUrl, { waitUntil: "networkidle" });
+    await expect(page.locator(".language-entry-screen")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Русский", exact: false })).toBeVisible();
+    await expect(page.getByRole("button", { name: "English", exact: false })).toBeVisible();
+
+    const entryOverflow = await page.evaluate(() => ({
+      viewport: window.innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      bodyWidth: document.body.scrollWidth
+    }));
+
+    expect(entryOverflow.documentWidth).toBeLessThanOrEqual(entryOverflow.viewport);
+    expect(entryOverflow.bodyWidth).toBeLessThanOrEqual(entryOverflow.viewport);
+
+    await page.getByRole("button", { name: "Русский", exact: false }).click();
     await expect(page.locator(".start-interrogation-surface")).toBeVisible();
+    await expect(page.locator(".onboarding-rules-card")).toContainText("Как играть");
+    await expect(page.locator(".onboarding-rules-card")).toContainText("Каждый вопрос стоит 1 ОД");
     await expect(page.locator(".first-question-cta")).toBeVisible();
 
     const overflow = await page.evaluate(() => ({

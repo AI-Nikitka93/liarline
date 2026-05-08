@@ -29,6 +29,7 @@
     "test:release-browser": "playwright test tools/release-browser.spec.ts",
     "test:release-ops": "tsx tools/test-release-ops.mjs",
     "test:release-postlaunch": "tsx tools/test-release-postlaunch.mjs",
+    "test:contest-final-packet": "node tools/test-contest-final-packet.mjs",
     "test:judge-readiness": "node tools/test-judge-readiness.mjs",
     "capture:release-screenshots": "tsx tools/capture-release-screenshots.ts",
     "test:design-handoff": "tsx tools/test-design-handoff.mjs",

@@ -10,6 +10,7 @@ Run this local package gate before publishing or updating the Devpost entry:
 
 ```bash
 npm run test:judge-readiness
+npm run test:contest-final-packet
 ```
 
 The gate checks:
@@ -19,6 +20,7 @@ The gate checks:
 - README, release notes, contest requirements, and Devpost copy exist.
 - Browser tests can start the local mobile release server themselves.
 - Devpost-required external fields are named and validated when strict mode is enabled.
+- `docs/JUDGE_FINAL_PACKET_2026-05-08.md` stays aligned with the contest rules, demo route, paste-ready fields, and no-overclaim boundaries.
 
 Strict mode is the final submission check:
 

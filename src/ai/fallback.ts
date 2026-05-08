@@ -150,6 +150,42 @@ function sanitizeAnswerText(text: string): string {
     .trim();
 }
 
+function normalizeForRepeatCheck(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}:]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function hasRepeatedPriorAnswer(answerText: string, payload: NpcTurnRequest): boolean {
+  const normalizedAnswer = normalizeForRepeatCheck(answerText);
+  if (normalizedAnswer.length < 24) return false;
+
+  return payload.turn.recentTranscript.some((entry) => {
+    const prior = normalizeForRepeatCheck(entry.answerText);
+    if (prior.length < 24) return false;
+    if (prior === normalizedAnswer) return true;
+
+    const answerWords = new Set(normalizedAnswer.split(" ").filter((word) => word.length >= 5));
+    const priorWords = prior.split(" ").filter((word) => word.length >= 5);
+    if (answerWords.size < 4 || priorWords.length < 4) return false;
+
+    const shared = priorWords.filter((word) => answerWords.has(word)).length;
+    return shared / Math.max(answerWords.size, priorWords.length) >= 0.75;
+  });
+}
+
+function mentionsSelfInThirdPerson(text: string, payload: NpcTurnRequest): boolean {
+  const name = payload.npc.displayName?.trim();
+  if (!name || name.length < 2) return false;
+  return new RegExp(`(^|[^\\p{L}\\p{N}])${escapeRegExp(name)}([^\\p{L}\\p{N}]|$)`, "iu").test(text);
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function pickFallbackAnswer(role: NpcPerformanceRole, seed: string): string {
   const useRussian = seed.includes(":ru:");
   const source = useRussian ? FALLBACK_ANSWERS_RU : FALLBACK_ANSWERS;
@@ -241,6 +277,12 @@ export function validateNpcTurnResponse(rawValue: unknown, payload: NpcTurnReque
   if (hasSpoilerText(answerText)) {
     warnings.push("Spoiler-like answer_text replaced");
     answerText = buildFallbackResponse(payload, "spoiler_text").answer_text;
+  }
+  if (mentionsSelfInThirdPerson(answerText, payload)) {
+    return { ok: false, value: null, warnings: [...warnings, "Model answered about active NPC in third person"] };
+  }
+  if (hasRepeatedPriorAnswer(answerText, payload)) {
+    return { ok: false, value: null, warnings: [...warnings, "Model repeated a prior answer"] };
   }
 
   const allowedClueIds = new Set(payload.outputRules.allowedRevealedClueIds);

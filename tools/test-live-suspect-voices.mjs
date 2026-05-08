@@ -66,12 +66,39 @@ function simulatedFirstTheoCollapse(state) {
   });
 }
 
+function simulatedIvoWeakRepeatContext(state) {
+  const question = "Какую деталь вы недоговариваете?";
+  const request = buildNpcTurnRequest(state, "suspect_ivo", question, "ru");
+  return applyNpcTurnResult(state, "suspect_ivo", question, {
+    ok: true,
+    source: "groq",
+    requestId: request.requestId,
+    model: request.model,
+    response: {
+      answer_text: "Нет, я всегда считаю все вещи до сдачи. В комнате отдыха точно нет пропавшего прототипа.",
+      truthfulness: "lie",
+      suspicion_delta: 1,
+      revealed_clue_id: null,
+      contradiction_risk: 40,
+      npc_mood: "panicking",
+      notebook_hint: "Ответ повторяет инвентарную версию."
+    },
+    meta: {
+      latencyMs: 0,
+      fallbackReason: null,
+      providerStatus: 200,
+      retryAfter: null,
+      validationWarnings: []
+    }
+  });
+}
+
 function compactLine(text) {
   return text.replace(/\s+/g, " ").trim();
 }
 
 function hasInternalLeak(text) {
-  return /liar_culprit|npcRole|truthTable|culpritSuspectId|trueMotiveId/i.test(text);
+  return /liar_culprit|npcRole|truthTable|culpritSuspectId|trueMotiveId|\bclue[a-z0-9]{6,}\b/i.test(text);
 }
 
 function genericFlag(result) {
@@ -83,6 +110,26 @@ function genericFlag(result) {
   return "none";
 }
 
+function scenarioQualityFlag(scenario, result) {
+  const answer = result.response.answer_text;
+  const normalized = answer.toLowerCase();
+  const baseFlag = genericFlag(result);
+  if (baseFlag !== "none") return baseFlag;
+  if (scenario.responseLocale === "ru" && /\b(no|wait|stop|inventory|cart|routine|prototype)\b/i.test(answer)) {
+    return "mixed language";
+  }
+  if (/^(you|вы)\b/i.test(answer.trim()) || /\b(you saw|you heard|you cannot|вы видели|вы слышали|вы не можете)\b/i.test(answer)) {
+    return "wrong dialogue perspective";
+  }
+  if (scenario.mustMention?.some((pattern) => !pattern.test(normalized))) {
+    return "missing required game detail";
+  }
+  if (scenario.mustAvoid?.some((pattern) => pattern.test(normalized))) {
+    return "repeated or weak denial";
+  }
+  return "none";
+}
+
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -91,7 +138,7 @@ async function requestLiveWithRetries(payload, attempts = 3) {
   const failures = [];
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     let result = await handleNpcTurnPayload(payload, { timeoutMs: 15000 });
-    if (result.source !== "groq" && ["network_error", "timeout"].includes(result.meta.fallbackReason || "")) {
+    if (result.source !== "groq" && ["network_error", "timeout", "fetch failed"].includes(result.meta.fallbackReason || "")) {
       result = await handleNpcTurnPayload(payload, { timeoutMs: 90000, fetchImpl: powershellFetch });
     }
     if (result.source === "groq") return result;
@@ -163,13 +210,16 @@ const baseState = {
   phase: "interrogation"
 };
 const collapsedState = simulatedFirstTheoCollapse(baseState);
+const repeatedIvoState = simulatedIvoWeakRepeatContext(collapsedState);
 
 const scenarios = [
   {
     suspectId: "suspect_ivo",
     state: collapsedState,
     question: "The cart log points at inventory. Why does that sound rehearsed?",
-    expectedBeat: "protective liar under contradiction"
+    expectedBeat: "protective liar under contradiction",
+    mustMention: [/21:10|cart|inventory|log|count|break room/],
+    mustAvoid: [/my inventory story has an uncovered gap|i cannot account|i stole|confession/]
   },
   {
     suspectId: "suspect_mara",
@@ -188,15 +238,24 @@ const scenarios = [
     state: baseState,
     question: "State only what you saw about the cart.",
     expectedBeat: "direct witness with blunt facts"
+  },
+  {
+    suspectId: "suspect_ivo",
+    state: repeatedIvoState,
+    question: "Какой журнал инвентаря доказывает, что вас не было у тележки в 21:10?",
+    expectedBeat: "RU protective liar gives new 21:10/cart pressure answer",
+    responseLocale: "ru",
+    mustMention: [/21:10|тележк|инвентар|журнал|минут/],
+    mustAvoid: [/всегда считаю все вещи до сдачи|комнате отдыха точно нет|моя версия.*оставляет провал|я украл|признан/]
   }
 ];
 
 const rows = [];
 
 for (const scenario of scenarios) {
-  const payload = buildNpcTurnRequest(scenario.state, scenario.suspectId, scenario.question, "en");
+  const payload = buildNpcTurnRequest(scenario.state, scenario.suspectId, scenario.question, scenario.responseLocale || "en");
   const result = await requestLiveWithRetries(payload);
-  const flag = genericFlag(result);
+  const flag = scenarioQualityFlag(scenario, result);
   if (flag !== "none") {
     throw new Error(`${scenario.suspectId} voice quality failed: ${flag}`);
   }

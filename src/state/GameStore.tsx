@@ -33,6 +33,7 @@ type GameStoreValue = {
   pendingQuestion: boolean;
   uiError: string | null;
   locale: Locale;
+  hasSelectedLocale: boolean;
   setLocale: (locale: Locale) => void;
   setSelectedSuspectId: (suspectId: string) => void;
   setNotebookOpen: (open: boolean) => void;
@@ -56,6 +57,7 @@ export function GameStoreProvider({ children }: { children: React.ReactNode }) {
   const [pendingQuestion, setPendingQuestion] = useState(false);
   const [uiError, setUiError] = useState<string | null>(null);
   const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
+  const [hasSelectedLocale, setHasSelectedLocale] = useState(false);
   const pendingQuestionRef = useRef(false);
   const runVersionRef = useRef(0);
   const currentRequestAbortRef = useRef<AbortController | null>(null);
@@ -68,6 +70,7 @@ export function GameStoreProvider({ children }: { children: React.ReactNode }) {
     const savedLocale = window.localStorage.getItem(LOCALE_KEY);
     if (savedLocale === "en" || savedLocale === "ru") {
       setLocaleState(savedLocale);
+      setHasSelectedLocale(true);
     }
 
     const raw = window.localStorage.getItem(SAVE_KEY);
@@ -90,8 +93,9 @@ export function GameStoreProvider({ children }: { children: React.ReactNode }) {
   }, [state]);
 
   useEffect(() => {
+    if (!hasSelectedLocale) return;
     window.localStorage.setItem(LOCALE_KEY, locale);
-  }, [locale]);
+  }, [hasSelectedLocale, locale]);
 
   const value = useMemo<GameStoreValue>(
     () => ({
@@ -101,8 +105,10 @@ export function GameStoreProvider({ children }: { children: React.ReactNode }) {
       pendingQuestion,
       uiError,
       locale,
+      hasSelectedLocale,
       setLocale: (nextLocale) => {
         setLocaleState(nextLocale);
+        setHasSelectedLocale(true);
         setUiError(null);
       },
       setSelectedSuspectId: (suspectId) => {
@@ -280,7 +286,7 @@ export function GameStoreProvider({ children }: { children: React.ReactNode }) {
         setUiError(null);
       }
     }),
-    [locale, notebookOpen, pendingQuestion, selectedSuspectId, state, uiError]
+    [hasSelectedLocale, locale, notebookOpen, pendingQuestion, selectedSuspectId, state, uiError]
   );
 
   return <GameStoreContext.Provider value={value}>{children}</GameStoreContext.Provider>;

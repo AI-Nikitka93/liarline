@@ -156,6 +156,36 @@ if (ruUserPrompt.includes('"No,"') || ruUserPrompt.includes('"Wait,"')) {
   throw new Error("RU user prompt still allows English contradiction interjections.");
 }
 
+const repeatedVagueRuPayload = {
+  ...ruPayload,
+  npc: {
+    ...ruPayload.npc,
+    displayName: "Иво",
+    pressureState: "contradiction",
+    mood: "panicking"
+  },
+  turn: {
+    ...ruPayload.turn,
+    playerQuestion: "Какую деталь вы недоговариваете?",
+    recentTranscript: [
+      {
+        questionText: "Какую деталь вы недоговариваете?",
+        answerText: "Нет, я всегда считаю все вещи до сдачи. В комнате отдыха точно нет пропавшего прототипа."
+      }
+    ]
+  }
+};
+const repeatedVagueRuPrompt = buildNpcUserPrompt(repeatedVagueRuPayload);
+if (!repeatedVagueRuPrompt.includes("recentTranscript")) {
+  throw new Error("User prompt must include recentTranscript so the model can avoid repeated answers.");
+}
+if (!repeatedVagueRuPrompt.includes("doNotRepeatPreviousAnswer")) {
+  throw new Error("User prompt must explicitly forbid repeating the previous answer.");
+}
+if (!repeatedVagueRuPrompt.includes("21:10")) {
+  throw new Error("Vague pressure questions must be anchored to the current game clue, not generic denial.");
+}
+
 const panickedFallback = buildFallbackResponse(
   {
     ...payload,
@@ -214,6 +244,38 @@ if (!mixedRuValidation.ok) {
 }
 if (/^No,|\binventory\b|\bcart\b|\broutine\b/i.test(mixedRuValidation.value.answer_text)) {
   throw new Error("Mixed-language RU response was not normalized.");
+}
+
+const repeatedAnswerValidation = validateNpcTurnResponse(
+  {
+    answer_text: "Нет, я всегда считаю все вещи до сдачи. В комнате отдыха точно нет пропавшего прототипа.",
+    truthfulness: "lie",
+    suspicion_delta: 1,
+    revealed_clue_id: null,
+    contradiction_risk: 35,
+    npc_mood: "panicking",
+    notebook_hint: "Повторяет прежнее отрицание."
+  },
+  repeatedVagueRuPayload
+);
+if (repeatedAnswerValidation.ok) {
+  throw new Error("Repeated model answer should be rejected so it is not labeled as a live playable answer.");
+}
+
+const thirdPersonSelfValidation = validateNpcTurnResponse(
+  {
+    answer_text: "Нет, я был в комнате отдыха. Иво не может объяснить несколько минут около 21:10.",
+    truthfulness: "lie",
+    suspicion_delta: 1,
+    revealed_clue_id: null,
+    contradiction_risk: 70,
+    npc_mood: "panicking",
+    notebook_hint: "Иво не закрывает провал около 21:10."
+  },
+  repeatedVagueRuPayload
+);
+if (thirdPersonSelfValidation.ok) {
+  throw new Error("NPC answer about itself in third person should be rejected.");
 }
 
 const stageDirectionValidation = validateNpcTurnResponse(

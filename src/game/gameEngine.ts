@@ -116,6 +116,7 @@ export function buildNpcTurnRequest(state: GameState, suspectId: string, questio
   const localizedCase = localizeCase(state.case, locale);
   const normalizedQuestion = normalizeQuestion(questionText, state.rules.maxQuestionChars);
   const revealableClueIds = getRevealableClueIds(state, suspectId);
+  const revealableClueSet = new Set(revealableClueIds);
   const dictionary = getDictionary(locale);
 
   return {
@@ -145,13 +146,14 @@ export function buildNpcTurnRequest(state: GameState, suspectId: string, questio
           .filter((text): text is string => Boolean(text))
           .slice(0, 6),
         knownPrivateClues: suspect.privateKnowledge.knowsClueIds
+          .filter((clueId) => revealableClueSet.has(clueId) || state.clues[clueId]?.unlocked)
           .map((clueId) => state.clues[clueId])
           .filter((clue) => Boolean(clue))
           .slice(0, 3)
           .map((clue) => localizeClue(clue, locale))
           .map((clue) => ({
             clueId: clue.clueId,
-            npcFacingText: clue.publicText.slice(0, 160)
+            npcFacingText: getNpcFacingClueText(clue.clueId, clue.publicText, suspect.displayName, locale).slice(0, 160)
           })),
         allowedFalseClaims: suspect.privateKnowledge.allowedFalseClaims.slice(0, 4),
         revealableClueIdsThisTurn: revealableClueIds.slice(0, 2)
@@ -173,6 +175,28 @@ export function buildNpcTurnRequest(state: GameState, suspectId: string, questio
       allowedRevealedClueIds: revealableClueIds.slice(0, 2)
     }
   };
+}
+
+function getNpcFacingClueText(clueId: string, publicText: string, suspectName: string, locale: Locale): string {
+  const npcFacing: Record<Locale, Record<string, string>> = {
+    en: {
+      clue_ivo_gap: "Pressure point: 21:10 inventory gap, cart timing, and my break-room claim.",
+      clue_debt_message: "A message suggests I urgently needed money.",
+      clue_mara_saw_prototype: "I saw the prototype after 21:05.",
+      clue_camera_fault: "I damaged the corridor camera before the theft.",
+      clue_lena_heard_cart: "I heard a cart roll toward the storage door."
+    },
+    ru: {
+      clue_ivo_gap: "Точка давления: 21:10, инвентарный провал, тележка и моя версия про комнату отдыха.",
+      clue_debt_message: "Сообщение показывает, что мне срочно нужны деньги.",
+      clue_mara_saw_prototype: "Я видела прототип после 21:05.",
+      clue_camera_fault: "Я повредил коридорную камеру до кражи.",
+      clue_lena_heard_cart: "Я слышала, как тележка покатилась к двери склада."
+    }
+  };
+  const direct = npcFacing[locale][clueId];
+  if (direct) return direct;
+  return publicText.replace(new RegExp(`\\b${escapeRegExp(suspectName)}\\b`, "gi"), locale === "ru" ? "вы" : "you");
 }
 
 export function validateQuestionAction(state: GameState, suspectId: string, questionText: string, locale: Locale = "en"): string | null {
@@ -524,6 +548,10 @@ function cloneRecord<T>(record: Record<string, T>): Record<string, T> {
 
 function normalizeQuestion(questionText: string, maxLength: number): string {
   return questionText.replace(/\s+/g, " ").trim().slice(0, maxLength);
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 export function getLocalizedMotiveMap(state: GameState, locale: Locale): GameState["truthTable"]["motiveMap"] {

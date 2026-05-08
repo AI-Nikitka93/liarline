@@ -45,6 +45,42 @@ function privateClueList(clues: NpcTurnRequest["npc"]["allowedKnowledge"]["known
   return clues.map((clue) => `- ${clue.clueId}: ${clue.npcFacingText}`).join("\n");
 }
 
+function getQuestionWords(text: string): string[] {
+  return text
+    .toLowerCase()
+    .split(/[^a-zа-яё0-9:]+/i)
+    .filter((word) => word.length >= 5);
+}
+
+function isVaguePressureQuestion(text: string): boolean {
+  return /detail|leaving out|not telling|hiding|verify|check|конкрет|детал|недоговар|скрыв|провер|минута|алиби/i.test(text);
+}
+
+function pickAnswerAnchor(payload: NpcTurnRequest): string | null {
+  const normalizedQuestion = payload.turn.playerQuestion.toLowerCase();
+  const questionWords = getQuestionWords(normalizedQuestion);
+  const matchedAllowedClue = payload.npc.allowedKnowledge.knownPrivateClues.find((clue) => {
+    const text = clue.npcFacingText.toLowerCase();
+    return questionWords.some((word) => text.includes(word));
+  });
+
+  if (matchedAllowedClue) return matchedAllowedClue.npcFacingText;
+
+  if (payload.npc.pressureState === "contradiction" || isVaguePressureQuestion(payload.turn.playerQuestion)) {
+    const priorityClue = payload.npc.allowedKnowledge.knownPrivateClues.find((clue) =>
+      /21:10|gap|провал|минут|тележ|cart|inventory|инвентар/i.test(clue.npcFacingText)
+    );
+    return (priorityClue || payload.npc.allowedKnowledge.knownPrivateClues[0])?.npcFacingText || null;
+  }
+
+  return null;
+}
+
+function isRepeatedQuestion(payload: NpcTurnRequest): boolean {
+  const current = payload.turn.playerQuestion.toLowerCase().replace(/\s+/g, " ").trim();
+  return payload.turn.recentTranscript.some((entry) => entry.questionText.toLowerCase().replace(/\s+/g, " ").trim() === current);
+}
+
 export function buildNpcSystemPrompt(
   npc: NpcTurnRequest["npc"],
   casePublic: NpcTurnRequest["casePublic"],
@@ -69,6 +105,7 @@ export function buildNpcSystemPrompt(
     `- Keep answer_text short and playable for a mobile screen: answer_text: max ${maxAnswerChars} chars.`,
     "- No generic filler. Every answer_text must contain one concrete allowed detail, emotional tell, correction, or defensive dodge tied to the question.",
     "- When the user prompt gives requiredAnswerAnchor, answer_text must visibly include that anchor's concrete meaning. Do not replace it with a vague excuse.",
+    "- Speak as this NPC in first person. Do not say the active NPC's name or use 'you' for facts about yourself.",
     "",
     "CASE:",
     `- ${casePublic.caseId}: ${casePublic.title}. ${casePublic.publicBrief}`,
@@ -116,23 +153,18 @@ export function buildNpcSystemPrompt(
 }
 
 export function buildNpcUserPrompt(payload: NpcTurnRequest): string {
-  const normalizedQuestion = payload.turn.playerQuestion.toLowerCase();
-  const matchedAllowedClue = payload.npc.allowedKnowledge.knownPrivateClues.find((clue) => {
-    const text = clue.npcFacingText.toLowerCase();
-    return normalizedQuestion
-      .split(/[^a-zа-яё0-9:]+/i)
-      .filter((word) => word.length >= 5)
-      .some((word) => text.includes(word));
-  });
+  const answerAnchor = pickAnswerAnchor(payload);
+  const repeatedQuestion = isRepeatedQuestion(payload);
   const pressureInstruction =
     payload.npc.performanceRole === "protective_liar" && payload.npc.pressureState === "contradiction"
       ? payload.turn.responseLocale === "ru"
         ? "For this contradiction turn, start answer_text in Russian with \"Нет,\" or \"Подождите,\" and then address the inventory/cart detail. Do not use English words such as No, Wait, Stop, inventory, cart, or routine."
         : "For this contradiction turn, start answer_text with \"No,\" or \"Wait,\" and then address the inventory/cart detail."
       : "Keep the response tied to the specific question.";
-  const requiredAnswerAnchor = matchedAllowedClue
-    ? `MANDATORY: include this allowed detail's concrete meaning and object noun in answer_text without adding a new physical cause. If this is the first nervous answer, include a hesitation/self-correction and explicitly name the camera or timing detail: ${matchedAllowedClue.npcFacingText}`
+  const requiredAnswerAnchor = answerAnchor
+    ? `MANDATORY: include this allowed detail's concrete meaning and object noun in answer_text without adding a new physical cause. If this is the first nervous answer, include a hesitation/self-correction and explicitly name the camera or timing detail: ${answerAnchor}`
     : "Do not invent a new physical cause, prop, place, time, or motive. Use only public facts, known clues, a permitted false claim, or an emotional tell.";
+  const previousAnswers = payload.turn.recentTranscript.slice(-2);
 
   return JSON.stringify(
     {
@@ -148,6 +180,15 @@ export function buildNpcUserPrompt(payload: NpcTurnRequest): string {
         suspicionDeltaMin: payload.outputRules.suspicionDeltaMin,
         suspicionDeltaMax: payload.outputRules.suspicionDeltaMax,
         allowedRevealedClueIds: payload.outputRules.allowedRevealedClueIds
+      },
+      recentTranscript: previousAnswers,
+      dialogueControl: {
+        repeatedQuestion,
+        doNotRepeatPreviousAnswer: previousAnswers.length > 0,
+        requiredNewMove:
+          payload.turn.responseLocale === "ru"
+            ? "Ответь новым игровым ходом: другая формулировка, конкретная минута/улика/уклонение, без копирования прошлого отрицания."
+            : "Answer with a new playable beat: different wording, one concrete minute/clue/dodge, and no copied denial."
       },
       pressureInstruction,
       requiredAnswerAnchor,

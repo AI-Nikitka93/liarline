@@ -72,6 +72,14 @@ for (const locale of ["en", "ru"]) {
   assert.ok(dictionary.ui.visualThesisBadge.length <= 24);
   assert.ok(dictionary.ui.briefingPremise.length <= (locale === "ru" ? 95 : 85));
   assert.ok(dictionary.ui.firstQuestionSetup.length <= (locale === "ru" ? 95 : 85));
+
+  const ivoQuestionCopy = [
+    ...dictionary.questions.base({}, { suspectId: "suspect_ivo" }),
+    ...dictionary.questions.pressure({}, { suspectId: "suspect_ivo" }, null),
+    ...dictionary.questions.final({}, { suspectId: "suspect_ivo" })
+  ].join(" ");
+  assert.ok(!/What detail are you leaving out|Give me one detail|Какую деталь вы недоговариваете|Назовите одну деталь/i.test(ivoQuestionCopy));
+  assert.ok(ivoQuestionCopy.includes(locale === "ru" ? "21:10" : "21:10"));
 }
 
 console.log("ui copy tests passed");

@@ -35,7 +35,8 @@ Project memory:
 - `docs/AI_PROVIDER_STATUS_2026-05-06.md` - current Groq model/rate-limit/fallback status.
 - `docs/GAME_ARCHITECTURE.md` - game architecture and AI contracts.
 - `docs/visual-spec.md` - visual direction and mobile design rules.
-- `_archive/agent-memory/docs/` - local-only archived master TODO, long research, anchor reviews, old execution plans, and detailed project history.
+- `docs/MASTER_TODO.md` - active win-push master plan for AI quality, button proof, visual polish, final submission, and post-launch resilience.
+- `_archive/agent-memory/docs/` - local-only archived research, anchor reviews, old execution plans, and detailed project history.
 - `MODEL_SELECTION.md` - benchmark-backed model decision.
 - `src/api/npc-turn.ts` - serverless Groq NPC-turn handler.
 - `src/ai/` - non-spoiler NPC performance contracts, prompt, response validation, fallback logic.

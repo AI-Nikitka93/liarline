@@ -178,7 +178,9 @@ Each post-release entry must include:
 ## Judge readiness
 
 - Local gate: `npm run test:judge-readiness`.
+- Final packet gate: `npm run test:contest-final-packet`.
 - Strict Devpost gate: set `LIARLINE_PUBLIC_URL`, `LIARLINE_GITHUB_URL`, `LIARLINE_DEMO_VIDEO_URL`, and `LIARLINE_STRICT_SUBMISSION=1`, then run `npm run test:judge-readiness`.
+- Strict mode validates URL format and live reachability for the public game and GitHub repository; the video URL still has to be the actual uploaded 1-3 minute demo.
 - Local package without public URL, GitHub URL, and demo video URL has an honest score ceiling of 88 because Devpost can treat missing external artifacts as incomplete.
 - Strict mode passing with the three public artifacts raises the packaging/compliance ceiling to 100; the video still must show current release UI and must not call fallback footage live AI.
 
@@ -194,3 +196,82 @@ Each post-release entry must include:
 - Suspect face is visible before explanation-heavy reading.
 - First-question CTA is visible and primary.
 - First AI answer reads as suspect performance and leads into contradiction/persona shift without external explanation.
+
+## Phase 10 validation checks
+
+- Guaranteed contradiction: release playthrough reaches `contradiction_camera_vs_cart` from the first Theo camera question without using a hint; watch only for repeated feedback that it feels too scripted.
+- Persona shift: Ivo shifts into a panicking contradiction state on the demo route; tune pressure wording only if video or first players say the shift is too subtle.
+- Collapse moment: the case pivot explains that Theo's camera panic is not enough and the cart gap matters more.
+- Weak/Strong confidence: stays coarse and tied to proof strength, not culprit identity.
+- Hint depth: one gated hint remains enough for the current one-case release; add a second level only after repeated stuck-after-hint evidence.
+- Notebook load: current risk is comparison clarity after contradiction, not too many evidence types.
+- Resolution rating: keep Sharp/Careful/Reckless/Misled, but collect fairness notes before changing names or tiers.
+
+## First follow-up patch backlog
+
+- Notebook comparison clarity: patch if repeated feedback mentions missed contradiction or unreadable Notebook after reveal.
+- Persona-shift punch: patch if Ivo's pressure answer feels too calm or generic in video or first-player feedback.
+- Rating fairness copy: patch if players understand the culprit but object to Resolution rating language.
+
+This backlog intentionally excludes season expansion, new cases, full trial mode, multiplayer, voice, accounts, and procedural case generation.
+
+## Second-case readiness criteria
+
+- First case has no repeated confusion around contradiction, persona shift, Notebook comparison, or rating fairness.
+- Second case adds one new deduction tool that changes reasoning, not just a new suspect skin or longer transcript.
+- AI remains an NPC performer and never owns truth, clue validity, or outcome resolution.
+
+## Future case template
+
+- Required beats: false certainty, guaranteed contradiction, collapse, persona shift, and resolution rating.
+- Required boundary: every case must have a tempting wrong theory with one visible flaw.
+- Required boundary: every guaranteed contradiction must be reachable without a hint.
+- Required boundary: every persona shift must be visible through AI performance, not only UI labels.
+
+## Model and platform update rules
+
+- Before each patch: re-check Groq access and `npm run test:npc-turn`.
+- Before submission: re-check Devpost fields, public URL, GitHub URL, video URL, and AI-use wording.
+- After follow-up UI changes: re-run mobile/browser gates for dock, keyboard, transcript, and Notebook behavior.
+
+## Visual asset review rules
+
+- Reject future assets with watermarks, mangled text, plastic faces, unreadable evidence marks, or inconsistent lighting.
+- Reject assets that hide controls, reduce contrast, create overflow, or make the first screen look empty.
+- Reject visual drift into generic dashboard, copied reference layout, or unrelated season branding.
+
+## Post-follow-up hygiene
+
+- Archive rejected images, raw AI drafts, temporary logs, and research scraps outside the release bundle.
+- Run `npm run build` after gameplay, AI, UI, docs, or release-contract changes.
+- Update README, RELEASE, SUBMISSION, STATE, and TODO evidence only when shipped behavior actually changed.
+- Re-run deterministic playthrough and browser route before promoting a follow-up.
+
+## DESIGN.md retrospective
+
+- Helped: suspect-first mobile surface, visual DNA rules, and state-specific fallback/contradiction/persona-shift/Resolution guidance.
+- Needs clarification: exact Notebook comparison layouts before more evidence types, plus sharper rejection examples for generated face and evidence-text artifacts.
+
+## Project memory update
+
+- Confirmed: one polished case is the right release shape for this deadline.
+- Confirmed: AI suspects can lie, but only evidence can convict.
+- Confirmed: serverless Groq proxy plus deterministic client state is the correct mobile web architecture.
+- Do not reopen: hidden truth in live model prompt, full trial mode before first-case clarity, or extra cases before contradiction/collapse/Notebook/rating feedback is stable.
+
+## No-drift checklist
+
+- AI remains suspect performance, not judge or truth engine.
+- Every follow-up strengthens Interrogation, Suspicion, Contradiction, Notebook, Accusation, or Resolution.
+- First-case clarity beats season, trial, multiplayer, voice, accounts, and procedural-case expansion.
+
+## Full-game direction decision
+
+Decision: polish the first case further.
+
+Rejected:
+
+- Add second case now: blocked until first-case contradiction, collapse, Notebook, and rating feedback are stable.
+- Build season map now: would be marketing scaffolding without playable proof and would drift from AI lies / evidence convicts.
+
+The old Phase 10 ledger is closed. Current follow-up work starts from `docs/MASTER_TODO.md`, which reopens the project around AI answer quality, button-level proof, RU/EN parity, visual differentiation, strict submission proof, and post-launch resilience.

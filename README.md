@@ -63,6 +63,7 @@ npm run test:release-ops
 npm run test:release-postlaunch
 npm run test:release-playthrough
 npm run test:release-browser
+npm run test:contest-final-packet
 npm run test:judge-readiness
 ```
 
@@ -84,7 +85,7 @@ npm run test:judge-readiness
 - Release go/no-go: run `npm run test:release-contracts`, `npm run test:release-playthrough`, `npm run test:release-browser`, `npm run test:release-monitoring`, and `npm run test:release-postlaunch`.
 - Release ops: run `npm run test:release-ops` before using feedback, triage, limitations, or recovery playbooks in a submission workflow.
 - Post-launch readiness: run `npm run test:release-postlaunch` before hotfix, freshness, changelog, parity, rehearsal, or first-observation decisions.
-- Judge readiness: run `npm run test:judge-readiness` for the local package gate; run it with `LIARLINE_STRICT_SUBMISSION=1` plus public game, GitHub, and demo-video URLs before final Devpost submission.
+- Judge readiness: run `npm run test:contest-final-packet` plus `npm run test:judge-readiness` for the local package gate; run judge readiness with `LIARLINE_STRICT_SUBMISSION=1` plus public game, GitHub, and demo-video URLs before final Devpost submission.
 
 ## Key Files
 
@@ -96,8 +97,10 @@ npm run test:judge-readiness
 - `src/i18n/dictionaries.ts` - RU/EN copy and localized case data.
 - `docs/GAME_ARCHITECTURE.md` - architecture and AI contract.
 - `docs/visual-spec.md` - mobile visual direction.
+- `docs/MASTER_TODO.md` - active win-push plan for AI quality, mobile/button proof, visual differentiation, release, and post-launch hardening.
 - `docs/SUBMISSION.md` - Devpost submission copy and demo path.
 - `docs/SUBMISSION_PACKAGE.md` - 100-point judge gate, required Devpost URLs, paste-ready copy, and strict submission check.
+- `docs/JUDGE_FINAL_PACKET_2026-05-08.md` - final rule-to-proof map, Devpost paste fields, video checklist, and no-overclaim boundary.
 - `docs/RELEASE.md` - release version notes, go/no-go checklist, asset provenance, outcome monitoring, hotfix criteria, freshness cycle, launch rehearsal, and first-observation rules.
 - `DESIGN.md` - Stitch/coding-agent visual handoff.
 

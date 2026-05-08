@@ -20,6 +20,9 @@ type Dictionary = {
     visualThesisBadge: string;
     coreHookLine: string;
     briefingPremise: string;
+    onboardingTitle: string;
+    onboardingGoal: string;
+    onboardingRules: string[];
     firstQuestionSetup: string;
     openNotebook: string;
     closeNotebook: string;
@@ -205,6 +208,13 @@ export const dictionaries: Record<Locale, Dictionary> = {
       visualThesisBadge: "Interrogate first",
       coreHookLine: "AI suspects can lie. Only evidence can convict.",
       briefingPremise: "The camera died before the theft. Theo's timeline is already shaking.",
+      onboardingTitle: "How to play",
+      onboardingGoal: "Find who stole the prototype. Interrogate suspects, catch a contradiction, then make one final accusation with evidence.",
+      onboardingRules: [
+        "Each question costs 1 AP. You have 9 AP for the case.",
+        "Suspicion is pressure, not proof. Use clues and contradictions before accusing.",
+        "AI performs suspect dialogue. The local Truth Table decides the real culprit and ending."
+      ],
       firstQuestionSetup: "Get his first story. Then test it against the cart log.",
       openNotebook: "Open notebook",
       closeNotebook: "Close notebook",
@@ -493,7 +503,13 @@ export const dictionaries: Record<Locale, Dictionary> = {
               ? "You say you left early. What did you actually see after 21:05?"
               : "You keep redirecting to facts. What did you hear near the storage door?",
         "Who had the strongest reason to touch the prototype?",
-        "What detail are you leaving out?"
+        suspect.suspectId === "suspect_ivo"
+          ? "Which minute around 21:10 does your inventory story not cover?"
+          : suspect.suspectId === "suspect_mara"
+            ? "What did you see after 21:05 that makes your early-leaving claim weak?"
+            : suspect.suspectId === "suspect_theo"
+              ? "Which camera fact is solid, and which minute is blurry?"
+              : "Name the exact sound and direction near storage."
       ],
       pressure: (_state, suspect, firstUnlockedClue) => [
         suspect.suspectId === "suspect_ivo"
@@ -504,11 +520,21 @@ export const dictionaries: Record<Locale, Dictionary> = {
               ? "Your panic explains the camera. What does it not explain?"
               : "Stop redirecting. Name the sound and the direction you heard.",
         firstUnlockedClue ? `This clue bothers me: ${firstUnlockedClue}. What do you say?` : "What would another suspect say about you?",
-        "Give me one detail that can be checked."
+        suspect.suspectId === "suspect_ivo"
+          ? "Which inventory record proves you were not near the cart at 21:10?"
+          : suspect.suspectId === "suspect_mara"
+            ? "What checkable fact puts the prototype in the lab after 21:05?"
+            : suspect.suspectId === "suspect_theo"
+              ? "Which part is only camera panic, and which part can be checked?"
+              : "Which storage-door fact can I verify?"
       ],
-      final: () => [
-        "What is the one minute in your story I should verify?",
-        "If you are innocent, who benefits from your confusion?",
+      final: (_state, suspect) => [
+        suspect.suspectId === "suspect_ivo"
+          ? "Final check: what covers your 21:10 inventory gap?"
+          : "What is the one minute in your story I should verify?",
+        suspect.suspectId === "suspect_ivo"
+          ? "If the cart log is routine, who can confirm that movement?"
+          : "If you are innocent, who benefits from your confusion?",
         "Last chance: correct anything you said before."
       ]
     }
@@ -536,6 +562,13 @@ export const dictionaries: Record<Locale, Dictionary> = {
       visualThesisBadge: "Сразу допрос",
       coreHookLine: "AI-подозреваемые могут лгать. Обвиняют только улики.",
       briefingPremise: "Камера умерла до кражи. Хронология Тео уже дрожит.",
+      onboardingTitle: "Как играть",
+      onboardingGoal: "Найдите, кто украл прототип. Допрашивайте подозреваемых, ловите противоречие и выдвигайте одно финальное обвинение с уликами.",
+      onboardingRules: [
+        "Каждый вопрос стоит 1 ОД. На дело есть 9 ОД.",
+        "Подозрение — это давление, а не доказательство. Перед обвинением сравнивайте улики и противоречия.",
+        "AI играет ответы подозреваемых. Настоящего виновного и концовку решает локальная таблица истины."
+      ],
       firstQuestionSetup: "Возьмите первую версию. Затем проверьте её логом тележки.",
       openNotebook: "Открыть записную книжку",
       closeNotebook: "Закрыть записную книжку",
@@ -824,7 +857,13 @@ export const dictionaries: Record<Locale, Dictionary> = {
               ? "Вы говорите, что ушли рано. Что вы на самом деле видели после 21:05?"
               : "Вы всё время возвращаете разговор к фактам. Что вы слышали у двери склада?",
         "У кого была самая сильная причина трогать прототип?",
-        "Какую деталь вы недоговариваете?"
+        suspect.suspectId === "suspect_ivo"
+          ? "Какая минута около 21:10 не закрыта вашей версией про инвентарь?"
+          : suspect.suspectId === "suspect_mara"
+            ? "Что вы видели после 21:05, из-за чего версия про ранний уход слабеет?"
+            : suspect.suspectId === "suspect_theo"
+              ? "В чём вы уверены про камеру, а где путается минута?"
+              : "Назовите точный звук и направление у двери склада."
       ],
       pressure: (_state, suspect, firstUnlockedClue) => [
         suspect.suspectId === "suspect_ivo"
@@ -835,11 +874,21 @@ export const dictionaries: Record<Locale, Dictionary> = {
               ? "Ваша паника объясняет камеру. Чего она не объясняет?"
               : "Хватит уходить в общие факты. Назовите звук и направление.",
         firstUnlockedClue ? `Меня тревожит эта улика: ${firstUnlockedClue}. Что скажете?` : "Что другой подозреваемый сказал бы о вас?",
-        "Назовите одну деталь, которую можно проверить."
+        suspect.suspectId === "suspect_ivo"
+          ? "Какой журнал инвентаря доказывает, что вас не было у тележки в 21:10?"
+          : suspect.suspectId === "suspect_mara"
+            ? "Какой проверяемый факт оставляет прототип в лаборатории после 21:05?"
+            : suspect.suspectId === "suspect_theo"
+              ? "Где заканчивается паника из-за камеры и начинается проверяемый факт?"
+              : "Какой факт по двери склада я могу проверить?"
       ],
-      final: () => [
-        "Какую одну минуту в вашей истории мне проверить?",
-        "Если вы невиновны, кому выгодна ваша путаница?",
+      final: (_state, suspect) => [
+        suspect.suspectId === "suspect_ivo"
+          ? "Финальная проверка: чем закрыт ваш провал около 21:10?"
+          : "Какую одну минуту в вашей истории мне проверить?",
+        suspect.suspectId === "suspect_ivo"
+          ? "Если тележка была обычной, кто подтвердит это движение?"
+          : "Если вы невиновны, кому выгодна ваша путаница?",
         "Последний шанс: исправьте то, что сказали раньше."
       ]
     }

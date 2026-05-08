@@ -13,7 +13,8 @@ const docs = [
 const forbidden = [
   { name: "github token", pattern: /\b(?:ghp|github_pat)_[A-Za-z0-9_]{20,}\b/i },
   { name: "raw secret key", pattern: /^(?:export\s+)?[A-Z0-9_]*(?:API_KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*[^\S\r\n]*=[^\S\r\n]*(?!your_key_here|<[^>]+>|$)[^\s#]+/im },
-  { name: "windows absolute private path", pattern: /\b[A-Z]:\\(?!Projects\\Konkurs\\AI Game Week\\public\b)/i }
+  { name: "windows absolute private path", pattern: /\b[A-Z]:\\(?!Projects\\Konkurs\\AI Game Week\\public\b)/i },
+  { name: "raw compact clue token in judge evidence", pattern: /\bclue[a-z0-9]{6,}\b/i }
 ];
 
 const findings = [];

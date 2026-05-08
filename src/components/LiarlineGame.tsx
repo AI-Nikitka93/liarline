@@ -21,17 +21,62 @@ import { NotebookDrawer } from "./NotebookDrawer";
 import { ActionPointPips, AppShell, NpcMoodFrame, PrimaryButton, SecondaryButton, SuspicionMeter, TopStrip } from "./ui";
 
 export function LiarlineGame() {
-  const { state } = useGameStore();
+  const { state, hasSelectedLocale } = useGameStore();
   useKeyboardInset();
 
   return (
     <AppShell>
-      {state.phase === "briefing" && <BriefingScreen />}
-      {state.phase === "interrogation" && <InterrogationScreen />}
-      {state.phase === "accusation" && <AccusationScreen />}
-      {state.phase === "resolution" && <ResolutionScreen />}
-      <NotebookDrawer />
+      {!hasSelectedLocale ? (
+        <LanguageEntryScreen />
+      ) : (
+        <>
+          {state.phase === "briefing" && <BriefingScreen />}
+          {state.phase === "interrogation" && <InterrogationScreen />}
+          {state.phase === "accusation" && <AccusationScreen />}
+          {state.phase === "resolution" && <ResolutionScreen />}
+          <NotebookDrawer />
+        </>
+      )}
     </AppShell>
+  );
+}
+
+function LanguageEntryScreen() {
+  const { setLocale } = useGameStore();
+
+  return (
+    <div className="language-entry-screen grid min-h-[100dvh] place-items-center bg-[radial-gradient(circle_at_top,rgb(15_118_110_/_0.18),transparent_34%),linear-gradient(180deg,#080a0d,#10141a)] px-4 py-8">
+      <section className="w-full max-w-[430px] rounded-liarline border border-line-500 bg-ink-850 p-5 shadow-terminal">
+        <div className="rounded border border-forensic-500/60 bg-forensic-500/10 px-3 py-2 font-mono text-[11px] font-bold uppercase text-forensic-500">
+          Liarline
+        </div>
+        <h1 className="mt-5 text-[30px] font-bold leading-9 text-text-50">Выберите язык / Choose language</h1>
+        <p className="mt-3 text-[15px] leading-6 text-text-300">
+          Детективная игра про допрос AI-подозреваемых. AI может лгать, но обвиняют только улики.
+        </p>
+        <p className="mt-2 text-[15px] leading-6 text-text-300">
+          Detective game about interrogating AI suspects. AI can lie, but only evidence can convict.
+        </p>
+        <div className="mt-6 grid gap-3">
+          <button
+            type="button"
+            onClick={() => setLocale("ru")}
+            className="min-h-14 rounded-liarline border border-forensic-500 bg-forensic-500 px-4 py-3 text-left text-[17px] font-bold text-ink-950 shadow-terminal focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          >
+            Русский
+            <span className="mt-1 block font-mono text-[10px] uppercase text-ink-900/75">Начать дело на русском</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setLocale("en")}
+            className="min-h-14 rounded-liarline border border-line-500 bg-ink-900 px-4 py-3 text-left text-[17px] font-bold text-text-50 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          >
+            English
+            <span className="mt-1 block font-mono text-[10px] uppercase text-text-400">Start the case in English</span>
+          </button>
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -89,6 +134,20 @@ function BriefingScreen() {
             <div className="rounded border border-signal-500/60 bg-signal-500/10 p-2 font-mono text-[10px] font-bold uppercase leading-4 text-signal-500">
               {dictionary.ui.coreHookLine}
             </div>
+            <section className="onboarding-rules-card rounded-liarline border border-forensic-500/60 bg-forensic-500/10 p-3">
+              <p className="font-mono text-[11px] font-bold uppercase text-forensic-500">{dictionary.ui.onboardingTitle}</p>
+              <p className="mt-2 text-[14px] font-bold leading-5 text-text-100">{dictionary.ui.onboardingGoal}</p>
+              <div className="mt-3 grid gap-2">
+                {dictionary.ui.onboardingRules.map((rule, index) => (
+                  <div key={rule} className="grid grid-cols-[auto_1fr] gap-2 rounded border border-line-700 bg-ink-950/70 p-2">
+                    <span className="grid h-6 w-6 place-items-center rounded border border-forensic-500 font-mono text-[10px] font-bold text-forensic-500">
+                      {index + 1}
+                    </span>
+                    <p className="text-[13px] leading-5 text-text-200">{rule}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
             <CaseProgressRail state={state} locale={locale} />
           </div>
         </div>
