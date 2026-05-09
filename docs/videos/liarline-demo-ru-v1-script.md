@@ -24,13 +24,17 @@ Caption zone: stable top overlay, chosen to avoid covering the mobile action doc
 
 ## TTS_SAFE_NARRATION
 
-- Liarline это мобильная детективная игра, где искусственный интеллект играет подозреваемых, но не решает, где правда.
-- Первый подозреваемый отвечает через AI, а локальный движок сверяет ответ с уликами.
-- История про камеру не объясняет движение тележки, поэтому давление переходит на Иво.
-- Блокнот показывает противоречие и цепочку доказательств до обвинения.
-- Финал считается детерминированно: должны совпасть подозреваемый, мотив и улики.
+Final locked voiceover, generated after the visual timeline was fixed:
 
-Voiceover was not generated for this delivery package. The video is silent-viewing ready through burned-in recording captions plus SRT.
+- 00:00:00,600 --> 00:00:08,600 Liarline это мобильный детектив. Модель играет подозреваемых, а правду решает движок.
+- 00:00:09,200 --> 00:00:14,700 Сразу видим дело: камера отказала, и версия Тео не сходится.
+- 00:00:15,200 --> 00:00:24,500 Модель дает ответ. Противоречие камеры и тележки открывает локальная логика.
+- 00:00:25,100 --> 00:00:35,500 Фокус переходит на Иво: провал в двадцать один десять и срочные деньги.
+- 00:00:36,200 --> 00:00:46,300 В блокноте видны улики, противоречие и закрытые части дела.
+- 00:00:47,000 --> 00:00:58,800 В финале нужны подозреваемый, мотив и две улики. Модель не заменяет доказательства.
+- 00:00:59,400 --> 00:01:10,500 Вердикт считает движок. Это честный мобильный кейс для Devpost AI Game Week.
+
+Voiceover generated with OmniVoice from the local permitted voice library. Russian uses the copied calm Mariia reference; English uses OmniVoice voice design for a clean English presentation voice. All generated segments report `clippedToSlot: false`.
 
 ## Final slate extension
 

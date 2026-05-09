@@ -47,9 +47,9 @@
     },
     {
       "capability": "TTS / M:\\AI\\Speak",
-      "status": "AVAILABLE_NOT_USED",
-      "usedFor": "voiceover skipped",
-      "note": "silent captioned delivery chosen to avoid late bilingual voice risk"
+      "status": "AVAILABLE_USED",
+      "usedFor": "OmniVoice narration and voice audition",
+      "note": "OmniVoice-master generated timed voiceover after final visual timeline lock"
     },
     {
       "capability": "Skills / plugins / apps / MCP",
@@ -96,23 +96,25 @@
     "captionEventsPerMinute": 9.24,
     "captionZone": "top stable overlay",
     "noSecretSurfaces": true,
-    "voiceover": "not_generated",
+    "voiceover": "generated_omnivoice",
     "testsRunBeforeRecording": [
       "npm run test:game-engine",
       "npm run test:demo-route"
     ],
     "liveDemoRouteVerified": true,
     "ffmpegEncoded": true,
-    "finalSlateExtendedSeconds": 8
+    "finalSlateExtendedSeconds": 8,
+    "voiceoverSegmentsClipped": false,
+    "audioStreamPresent": true
   },
   "generatedArtifacts": [
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1.mp4",
-      "bytes": 2390426
+      "bytes": 2898647
     },
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1.webm",
-      "bytes": 14474690
+      "bytes": 15001772
     },
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-contact-sheet.png",
@@ -124,7 +126,7 @@
     },
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-script.md",
-      "bytes": 6290
+      "bytes": 6928
     },
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-keyframe-01.png",
@@ -149,6 +151,18 @@
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-keyframe-06.png",
       "bytes": 395151
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-voiceover.wav",
+      "bytes": 3456044
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-audio-mix.wav",
+      "bytes": 3456044
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-v1-voiceover-report.json",
+      "bytes": 11640
     }
   ],
   "keyframes": [
@@ -236,7 +250,169 @@
   ],
   "notes": [
     "Recording captions are injected by Playwright only during capture; product code is unchanged.",
-    "MP4/WebM contain no audio. SRT is included for platform captions.",
-    "Final slate was extended by FFmpeg after the successful recording to satisfy caption-density pacing gates without changing the proof route."
-  ]
+    "Final slate was extended by FFmpeg after the successful recording to satisfy caption-density pacing gates without changing the proof route.",
+    "MP4/WebM now include OmniVoice narration; SRT is still included for platform captions.",
+    "Voiceover was generated from TTS-safe narration after visual timeline lock; all segments report clippedToSlot=false."
+  ],
+  "updatedAt": "2026-05-09T21:32:33.660Z",
+  "voiceover": {
+    "status": "generated",
+    "engine": "OmniVoice",
+    "device": "cuda",
+    "report": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-v1-voiceover-report.json",
+    "output": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-voiceover.wav",
+    "audioMix": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-audio-mix.wav",
+    "selectedVoice": "en-designed-female",
+    "mode": "design",
+    "copiedReference": null,
+    "rightsAssumption": "user-owned local voice library",
+    "auditionOutput": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-auditions\\en-designed-female-audition.wav",
+    "auditionScores": {
+      "languageFit": 5,
+      "naturalness": 4,
+      "clarity": 5,
+      "noise": 5,
+      "speedStability": 5,
+      "robotMetallicRisk": 2,
+      "verdict": "selected",
+      "note": "OmniVoice voice design for clean English narration"
+    },
+    "segmentCount": 7,
+    "clippedSegments": 0,
+    "metrics": {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-voiceover.wav",
+      "duration": 72,
+      "rms": 0.0703,
+      "peak": 0.72,
+      "speechEnd": 64.218,
+      "tailSilence": 7.782
+    },
+    "ttsSafeNarration": [
+      {
+        "start": "00:00:00,600",
+        "end": "00:00:08,100",
+        "text": "Liarline is a mobile AI detective game. The model plays suspects, but the engine owns truth."
+      },
+      {
+        "start": "00:00:08,700",
+        "end": "00:00:14,400",
+        "text": "The case starts fast: the camera failed, and Theo is under pressure."
+      },
+      {
+        "start": "00:00:15,000",
+        "end": "00:00:24,200",
+        "text": "The AI gives the answer. The local logic opens the camera and cart contradiction."
+      },
+      {
+        "start": "00:00:24,800",
+        "end": "00:00:35,200",
+        "text": "Pressure shifts to Ivo: a twenty one ten gap, and an urgent money motive."
+      },
+      {
+        "start": "00:00:36,000",
+        "end": "00:00:46,000",
+        "text": "The notebook shows evidence, contradiction, and what is still hidden."
+      },
+      {
+        "start": "00:00:46,700",
+        "end": "00:00:58,300",
+        "text": "The final accusation needs a suspect, a motive, and two evidence items."
+      },
+      {
+        "start": "00:00:59,100",
+        "end": "00:01:09,800",
+        "text": "The engine scores the verdict. One honest mobile case for Devpost AI Game Week."
+      }
+    ],
+    "rawArtifacts": [
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\generate-liarline-voiceover.py",
+        "bytes": 12678
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-refs\\liarline\\ru-mariia-calm.mp3",
+        "bytes": 512044
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-refs\\liarline\\ru-mariia-calm.wav",
+        "bytes": 278718
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-refs\\liarline\\ru-paul-deep.mp3",
+        "bytes": 462892
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-refs\\liarline\\ru-paul-deep.wav",
+        "bytes": 251968
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-auditions\\en-designed-female-audition.wav",
+        "bytes": 354764
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-auditions\\ru-mariia-calm-audition.wav",
+        "bytes": 404684
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-auditions\\ru-paul-deep-audition.wav",
+        "bytes": 458444
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-01.wav",
+        "bytes": 350924
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-02.wav",
+        "bytes": 251084
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-03.wav",
+        "bytes": 320204
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-04.wav",
+        "bytes": 293324
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-05.wav",
+        "bytes": 253004
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-06.wav",
+        "bytes": 339404
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-07.wav",
+        "bytes": 312524
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-01.wav",
+        "bytes": 318284
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-02.wav",
+        "bytes": 243404
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-03.wav",
+        "bytes": 285644
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-04.wav",
+        "bytes": 256844
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-05.wav",
+        "bytes": 253004
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-06.wav",
+        "bytes": 254924
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-07.wav",
+        "bytes": 279884
+      }
+    ]
+  }
 }

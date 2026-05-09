@@ -12,7 +12,9 @@
       "contactSheet": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-contact-sheet.png",
       "captions": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-captions.srt",
       "script": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-script.md",
-      "manifest": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-manifest.json"
+      "manifest": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-manifest.json",
+      "voiceover": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-voiceover.wav",
+      "audioMix": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-audio-mix.wav"
     },
     {
       "lang": "en",
@@ -22,8 +24,119 @@
       "contactSheet": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-contact-sheet.png",
       "captions": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-captions.srt",
       "script": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-script.md",
-      "manifest": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-manifest.json"
+      "manifest": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-manifest.json",
+      "voiceover": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-voiceover.wav",
+      "audioMix": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-audio-mix.wav"
     }
   ],
-  "updatedAt": "2026-05-09T21:02:12.476Z"
+  "updatedAt": "2026-05-09T21:32:33.660Z",
+  "voiceover": {
+    "status": "generated_for_both_packages",
+    "engine": "OmniVoice",
+    "report": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-v1-voiceover-report.json",
+    "ru": {
+      "selectedVoice": "ru-mariia-calm",
+      "output": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-voiceover.wav",
+      "audioMix": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-audio-mix.wav",
+      "copiedReference": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-refs\\liarline\\ru-mariia-calm.wav",
+      "clippedSegments": 0
+    },
+    "en": {
+      "selectedVoice": "en-designed-female",
+      "output": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-voiceover.wav",
+      "audioMix": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-audio-mix.wav",
+      "copiedReference": null,
+      "clippedSegments": 0
+    },
+    "rawArtifacts": [
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\generate-liarline-voiceover.py",
+        "bytes": 12678
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-refs\\liarline\\ru-mariia-calm.mp3",
+        "bytes": 512044
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-refs\\liarline\\ru-mariia-calm.wav",
+        "bytes": 278718
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-refs\\liarline\\ru-paul-deep.mp3",
+        "bytes": 462892
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-refs\\liarline\\ru-paul-deep.wav",
+        "bytes": 251968
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-auditions\\en-designed-female-audition.wav",
+        "bytes": 354764
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-auditions\\ru-mariia-calm-audition.wav",
+        "bytes": 404684
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-auditions\\ru-paul-deep-audition.wav",
+        "bytes": 458444
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-01.wav",
+        "bytes": 350924
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-02.wav",
+        "bytes": 251084
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-03.wav",
+        "bytes": 320204
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-04.wav",
+        "bytes": 293324
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-05.wav",
+        "bytes": 253004
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-06.wav",
+        "bytes": 339404
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-07.wav",
+        "bytes": 312524
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-01.wav",
+        "bytes": 318284
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-02.wav",
+        "bytes": 243404
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-03.wav",
+        "bytes": 285644
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-04.wav",
+        "bytes": 256844
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-05.wav",
+        "bytes": 253004
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-06.wav",
+        "bytes": 254924
+      },
+      {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-07.wav",
+        "bytes": 279884
+      }
+    ]
+  }
 }

@@ -1,0 +1,322 @@
+{
+  "engine": "OmniVoice",
+  "rightsAssumption": "user-owned local voice library",
+  "auditions": [
+    {
+      "candidate": "ru-mariia-calm",
+      "mode": "clone",
+      "copiedReference": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-refs\\liarline\\ru-mariia-calm.wav",
+      "languageFit": 5,
+      "naturalness": 5,
+      "clarity": 5,
+      "noise": 5,
+      "speedStability": 5,
+      "robotMetallicRisk": 1,
+      "auditionOutput": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-auditions\\ru-mariia-calm-audition.wav",
+      "metrics": {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-auditions\\ru-mariia-calm-audition.wav",
+        "duration": 8.43,
+        "rms": 0.09269,
+        "peak": 0.78,
+        "speechEnd": 7.765,
+        "tailSilence": 0.665
+      },
+      "elapsedSeconds": 1.12,
+      "verdict": "selected",
+      "note": "clean calm presentation timbre by filename and library category"
+    },
+    {
+      "candidate": "ru-paul-deep",
+      "mode": "clone",
+      "copiedReference": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-refs\\liarline\\ru-paul-deep.wav",
+      "languageFit": 5,
+      "naturalness": 4,
+      "clarity": 5,
+      "noise": 5,
+      "speedStability": 4,
+      "robotMetallicRisk": 2,
+      "auditionOutput": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-auditions\\ru-paul-deep-audition.wav",
+      "metrics": {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-auditions\\ru-paul-deep-audition.wav",
+        "duration": 9.55,
+        "rms": 0.08633,
+        "peak": 0.78003,
+        "speechEnd": 7.699,
+        "tailSilence": 1.851
+      },
+      "elapsedSeconds": 0.67,
+      "verdict": "rejected",
+      "note": "deep clear male voice, slightly more dramatic"
+    },
+    {
+      "candidate": "en-designed-female",
+      "mode": "design",
+      "copiedReference": null,
+      "languageFit": 5,
+      "naturalness": 4,
+      "clarity": 5,
+      "noise": 5,
+      "speedStability": 5,
+      "robotMetallicRisk": 2,
+      "auditionOutput": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-auditions\\en-designed-female-audition.wav",
+      "metrics": {
+        "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-auditions\\en-designed-female-audition.wav",
+        "duration": 7.39,
+        "rms": 0.11178,
+        "peak": 0.78,
+        "speechEnd": 6.683,
+        "tailSilence": 0.707
+      },
+      "elapsedSeconds": 0.35,
+      "verdict": "selected",
+      "note": "OmniVoice voice design for clean English narration"
+    }
+  ],
+  "device": "cuda",
+  "ruVoiceover": {
+    "output": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-voiceover.wav",
+    "metrics": {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-voiceover.wav",
+      "duration": 73.0,
+      "rms": 0.07438,
+      "peak": 0.72,
+      "speechEnd": 65.185,
+      "tailSilence": 7.815
+    },
+    "segments": [
+      {
+        "index": 1,
+        "start": "00:00:00,600",
+        "end": "00:00:08,600",
+        "text": "Liarline это мобильный детектив. Модель играет подозреваемых, а правду решает движок.",
+        "metrics": {
+          "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-01.wav",
+          "duration": 7.31,
+          "rms": 0.09294,
+          "peak": 0.78003,
+          "speechEnd": 6.634,
+          "tailSilence": 0.676
+        },
+        "clippedToSlot": false
+      },
+      {
+        "index": 2,
+        "start": "00:00:09,200",
+        "end": "00:00:14,700",
+        "text": "Сразу видим дело: камера отказала, и версия Тео не сходится.",
+        "metrics": {
+          "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-02.wav",
+          "duration": 5.23,
+          "rms": 0.12587,
+          "peak": 0.78,
+          "speechEnd": 4.288,
+          "tailSilence": 0.942
+        },
+        "clippedToSlot": false
+      },
+      {
+        "index": 3,
+        "start": "00:00:15,200",
+        "end": "00:00:24,500",
+        "text": "Модель дает ответ. Противоречие камеры и тележки открывает локальная логика.",
+        "metrics": {
+          "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-03.wav",
+          "duration": 6.67,
+          "rms": 0.10679,
+          "peak": 0.78003,
+          "speechEnd": 5.988,
+          "tailSilence": 0.682
+        },
+        "clippedToSlot": false
+      },
+      {
+        "index": 4,
+        "start": "00:00:25,100",
+        "end": "00:00:35,500",
+        "text": "Фокус переходит на Иво: провал в двадцать один десять и срочные деньги.",
+        "metrics": {
+          "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-04.wav",
+          "duration": 6.11,
+          "rms": 0.09577,
+          "peak": 0.78,
+          "speechEnd": 5.117,
+          "tailSilence": 0.993
+        },
+        "clippedToSlot": false
+      },
+      {
+        "index": 5,
+        "start": "00:00:36,200",
+        "end": "00:00:46,300",
+        "text": "В блокноте видны улики, противоречие и закрытые части дела.",
+        "metrics": {
+          "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-05.wav",
+          "duration": 5.27,
+          "rms": 0.08348,
+          "peak": 0.78003,
+          "speechEnd": 4.485,
+          "tailSilence": 0.785
+        },
+        "clippedToSlot": false
+      },
+      {
+        "index": 6,
+        "start": "00:00:47,000",
+        "end": "00:00:58,800",
+        "text": "В финале нужны подозреваемый, мотив и две улики. Модель не заменяет доказательства.",
+        "metrics": {
+          "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-06.wav",
+          "duration": 7.07,
+          "rms": 0.11085,
+          "peak": 0.78003,
+          "speechEnd": 6.405,
+          "tailSilence": 0.665
+        },
+        "clippedToSlot": false
+      },
+      {
+        "index": 7,
+        "start": "00:00:59,400",
+        "end": "00:01:10,500",
+        "text": "Вердикт считает движок. Это честный мобильный кейс для Devpost AI Game Week.",
+        "metrics": {
+          "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-ru\\segment-07.wav",
+          "duration": 6.51,
+          "rms": 0.10535,
+          "peak": 0.78003,
+          "speechEnd": 5.785,
+          "tailSilence": 0.725
+        },
+        "clippedToSlot": false
+      }
+    ]
+  },
+  "enVoiceover": {
+    "output": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-voiceover.wav",
+    "metrics": {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-voiceover.wav",
+      "duration": 72.0,
+      "rms": 0.0703,
+      "peak": 0.72,
+      "speechEnd": 64.218,
+      "tailSilence": 7.782
+    },
+    "segments": [
+      {
+        "index": 1,
+        "start": "00:00:00,600",
+        "end": "00:00:08,100",
+        "text": "Liarline is a mobile AI detective game. The model plays suspects, but the engine owns truth.",
+        "metrics": {
+          "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-01.wav",
+          "duration": 6.63,
+          "rms": 0.1048,
+          "peak": 0.78,
+          "speechEnd": 5.719,
+          "tailSilence": 0.911
+        },
+        "clippedToSlot": false
+      },
+      {
+        "index": 2,
+        "start": "00:00:08,700",
+        "end": "00:00:14,400",
+        "text": "The case starts fast: the camera failed, and Theo is under pressure.",
+        "metrics": {
+          "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-02.wav",
+          "duration": 5.07,
+          "rms": 0.10553,
+          "peak": 0.78,
+          "speechEnd": 4.224,
+          "tailSilence": 0.846
+        },
+        "clippedToSlot": false
+      },
+      {
+        "index": 3,
+        "start": "00:00:15,000",
+        "end": "00:00:24,200",
+        "text": "The AI gives the answer. The local logic opens the camera and cart contradiction.",
+        "metrics": {
+          "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-03.wav",
+          "duration": 5.95,
+          "rms": 0.07638,
+          "peak": 0.78,
+          "speechEnd": 5.227,
+          "tailSilence": 0.723
+        },
+        "clippedToSlot": false
+      },
+      {
+        "index": 4,
+        "start": "00:00:24,800",
+        "end": "00:00:35,200",
+        "text": "Pressure shifts to Ivo: a twenty one ten gap, and an urgent money motive.",
+        "metrics": {
+          "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-04.wav",
+          "duration": 5.35,
+          "rms": 0.09803,
+          "peak": 0.78003,
+          "speechEnd": 4.69,
+          "tailSilence": 0.66
+        },
+        "clippedToSlot": false
+      },
+      {
+        "index": 5,
+        "start": "00:00:36,000",
+        "end": "00:00:46,000",
+        "text": "The notebook shows evidence, contradiction, and what is still hidden.",
+        "metrics": {
+          "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-05.wav",
+          "duration": 5.27,
+          "rms": 0.10542,
+          "peak": 0.78003,
+          "speechEnd": 4.234,
+          "tailSilence": 1.036
+        },
+        "clippedToSlot": false
+      },
+      {
+        "index": 6,
+        "start": "00:00:46,700",
+        "end": "00:00:58,300",
+        "text": "The final accusation needs a suspect, a motive, and two evidence items.",
+        "metrics": {
+          "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-06.wav",
+          "duration": 5.31,
+          "rms": 0.07104,
+          "peak": 0.78,
+          "speechEnd": 4.121,
+          "tailSilence": 1.189
+        },
+        "clippedToSlot": false
+      },
+      {
+        "index": 7,
+        "start": "00:00:59,100",
+        "end": "00:01:09,800",
+        "text": "The engine scores the verdict. One honest mobile case for Devpost AI Game Week.",
+        "metrics": {
+          "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\voice-segments-en\\segment-07.wav",
+          "duration": 5.83,
+          "rms": 0.1416,
+          "peak": 0.78,
+          "speechEnd": 5.067,
+          "tailSilence": 0.763
+        },
+        "clippedToSlot": false
+      }
+    ]
+  },
+  "muxed": [
+    {
+      "lang": "ru",
+      "video": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1.mp4"
+    },
+    {
+      "lang": "en",
+      "video": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1.mp4"
+    }
+  ]
+}

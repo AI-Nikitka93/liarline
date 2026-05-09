@@ -24,13 +24,17 @@ Caption zone: stable top overlay, chosen to avoid covering the mobile action doc
 
 ## TTS_SAFE_NARRATION
 
-- Liarline is a mobile detective game where artificial intelligence performs suspects, but it does not decide the truth.
-- The first suspect gives a live answer, then the local engine checks it against evidence.
-- The camera story cannot explain the cart movement, so Ivo becomes the pressure target.
-- The notebook shows the contradiction and the evidence chain before the accusation.
-- The verdict is deterministic: suspect, motive, and evidence must line up.
+Final locked voiceover, generated after the visual timeline was fixed:
 
-Voiceover was not generated for this delivery package. The video is silent-viewing ready through burned-in recording captions plus SRT.
+- 00:00:00,600 --> 00:00:08,100 Liarline is a mobile AI detective game. The model plays suspects, but the engine owns truth.
+- 00:00:08,700 --> 00:00:14,400 The case starts fast: the camera failed, and Theo is under pressure.
+- 00:00:15,000 --> 00:00:24,200 The AI gives the answer. The local logic opens the camera and cart contradiction.
+- 00:00:24,800 --> 00:00:35,200 Pressure shifts to Ivo: a twenty one ten gap, and an urgent money motive.
+- 00:00:36,000 --> 00:00:46,000 The notebook shows evidence, contradiction, and what is still hidden.
+- 00:00:46,700 --> 00:00:58,300 The final accusation needs a suspect, a motive, and two evidence items.
+- 00:00:59,100 --> 00:01:09,800 The engine scores the verdict. One honest mobile case for Devpost AI Game Week.
+
+Voiceover generated with OmniVoice. English uses OmniVoice voice design for a clean English presentation voice; Russian uses the copied calm Mariia reference from the local permitted voice library. All generated segments report `clippedToSlot: false`.
 
 ## Final slate extension
 
