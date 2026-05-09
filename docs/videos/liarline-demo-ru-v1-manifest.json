@@ -90,7 +90,7 @@
     "unlimited generated cases"
   ],
   "verification": {
-    "durationSeconds": 72.367,
+    "durationSeconds": 72.363,
     "minFullDemoDurationGate": true,
     "captionEvents": 11,
     "captionEventsPerMinute": 9.12,
@@ -105,24 +105,22 @@
     "ffmpegEncoded": true,
     "finalSlateExtendedSeconds": 8,
     "voiceoverSegmentsClipped": false,
-    "audioStreamPresent": true
+    "audioStreamPresent": true,
+    "titleCardLayoutFixed": true,
+    "captionSrtMovedToAvoidPlayerAutoLoad": true
   },
   "generatedArtifacts": [
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1.mp4",
-      "bytes": 3028550
+      "bytes": 3028702
     },
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1.webm",
-      "bytes": 13776876
+      "bytes": 11962185
     },
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-contact-sheet.png",
-      "bytes": 662597
-    },
-    {
-      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-captions.srt",
-      "bytes": 1564
+      "bytes": 734822
     },
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-script.md",
@@ -130,27 +128,27 @@
     },
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-01.png",
-      "bytes": 65160
+      "bytes": 244719
     },
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-02.png",
-      "bytes": 563287
+      "bytes": 744964
     },
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-03.png",
-      "bytes": 304306
+      "bytes": 673277
     },
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-04.png",
-      "bytes": 272864
+      "bytes": 499462
     },
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-05.png",
-      "bytes": 267613
+      "bytes": 494810
     },
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-06.png",
-      "bytes": 389836
+      "bytes": 582403
     },
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-voiceover.wav",
@@ -163,6 +161,22 @@
     {
       "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-v1-voiceover-report.json",
       "bytes": 11640
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\captions\\liarline-demo-ru-v1-captions.srt",
+      "bytes": 1564
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\slides\\layout-fix-v1\\ru-hook.png",
+      "bytes": 346294
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\slides\\layout-fix-v1\\ru-problem.png",
+      "bytes": 353662
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\slides\\layout-fix-v1\\ru-final.png",
+      "bytes": 351774
     }
   ],
   "keyframes": [
@@ -251,10 +265,11 @@
   "notes": [
     "Recording captions are injected by Playwright only during capture; product code is unchanged.",
     "Final slate was extended by FFmpeg after the successful recording to satisfy caption-density pacing gates without changing the proof route.",
-    "MP4/WebM now include OmniVoice narration; SRT is still included for platform captions.",
-    "Voiceover was generated from TTS-safe narration after visual timeline lock; all segments report clippedToSlot=false."
+    "Voiceover was generated from TTS-safe narration after visual timeline lock; all segments report clippedToSlot=false.",
+    "Opening/problem/final cards were replaced with full-frame 780x1688 slides after review; live UI and voice timeline were preserved.",
+    "SRT captions were moved into docs/videos/captions to prevent local players from auto-loading oversized external subtitles over the burned-in presentation."
   ],
-  "updatedAt": "2026-05-09T21:32:33.660Z",
+  "updatedAt": "2026-05-09T21:39:24.908Z",
   "voiceover": {
     "status": "generated",
     "engine": "OmniVoice",
