@@ -1,13 +1,18 @@
-import { readFile } from "node:fs/promises";
+import { readFile, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { execFile } from "node:child_process";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { promisify } from "node:util";
+import { loadLocalEnv as loadLocalEnvFile } from "./load-local-env.mjs";
 import { buildFallbackResponse, validateNpcTurnResponse } from "../src/ai/fallback.ts";
 import { buildNpcSystemPrompt, buildNpcUserPrompt } from "../src/ai/systemPrompt.ts";
 import { handleNpcTurnPayload } from "../src/api/npc-turn.ts";
 
 const ROOT = process.cwd();
 const ENV_PATH = path.join(ROOT, ".env.local");
+const execFileAsync = promisify(execFile);
 
 function parseEnv(raw) {
   const env = {};
@@ -30,11 +35,74 @@ function parseEnv(raw) {
 }
 
 async function loadLocalEnv() {
-  if (!existsSync(ENV_PATH)) return;
-  const parsed = parseEnv(await readFile(ENV_PATH, "utf8"));
-  for (const [key, value] of Object.entries(parsed)) {
-    if (!(key in process.env)) process.env[key] = value;
+  loadLocalEnvFile(ENV_PATH);
+}
+
+async function powershellFetch(url, init = {}) {
+  const dir = await mkdtemp(path.join(tmpdir(), "liarline-npc-smoke-"));
+  const bodyPath = path.join(dir, "body.json");
+  await writeFile(bodyPath, typeof init.body === "string" ? init.body : "", "utf8");
+  const authorization =
+    init.headers?.authorization ||
+    init.headers?.Authorization ||
+    (typeof init.headers?.get === "function" ? init.headers.get("authorization") : "") ||
+    `Bearer ${process.env.GROQ_API_KEY || ""}`;
+  const script = [
+    "$ErrorActionPreference = 'Stop'",
+    "$headers = @{ Authorization = $env:LIARLINE_GROQ_AUTH }",
+    "$body = Get-Content -Raw -LiteralPath $env:LIARLINE_GROQ_BODY",
+    "try {",
+    "  $response = Invoke-RestMethod -Uri $env:LIARLINE_GROQ_URL -Method Post -Headers $headers -ContentType 'application/json' -Body $body -TimeoutSec 75",
+    "  $content = $response | ConvertTo-Json -Compress -Depth 16",
+    "  $out = [ordered]@{ status = 200; body = [string]$content }",
+    "} catch {",
+    "  $status = 599",
+    "  $content = $_.Exception.Message",
+    "  if ($_.Exception.Response) {",
+    "    $status = [int]$_.Exception.Response.StatusCode",
+    "    $stream = $_.Exception.Response.GetResponseStream()",
+    "    if ($stream) { $reader = New-Object System.IO.StreamReader($stream); $content = $reader.ReadToEnd() }",
+    "  }",
+    "  $out = [ordered]@{ status = $status; body = [string]$content }",
+    "}",
+    "$out | ConvertTo-Json -Compress -Depth 4"
+  ].join("\n");
+
+  try {
+    const { stdout } = await execFileAsync("powershell", ["-NoProfile", "-Command", script], {
+      env: {
+        ...process.env,
+        LIARLINE_GROQ_AUTH: authorization,
+        LIARLINE_GROQ_BODY: bodyPath,
+        LIARLINE_GROQ_URL: url
+      },
+      timeout: 90000,
+      windowsHide: true,
+      maxBuffer: 1024 * 1024
+    });
+    const parsed = JSON.parse(stdout.trim());
+    return new Response(parsed.body, {
+      status: parsed.status,
+      headers: {
+        "content-type": "application/json"
+      }
+    });
+  } finally {
+    await rm(dir, { recursive: true, force: true });
   }
+}
+
+async function requestNpcSmoke(payload) {
+  let result = await handleNpcTurnPayload(payload, {
+    timeoutMs: Number.parseInt(process.env.TEST_NPC_TIMEOUT_MS || "15000", 10)
+  });
+  if (result.source !== "groq" && ["network_error", "timeout", "fetch failed"].includes(result.meta.fallbackReason || "")) {
+    result = await handleNpcTurnPayload(payload, {
+      timeoutMs: 90000,
+      fetchImpl: powershellFetch
+    });
+  }
+  return result;
 }
 
 function buildMockRequest() {
@@ -297,9 +365,119 @@ if (/[*_`]/.test(stageDirectionValidation.value.answer_text) || /gulps/i.test(st
   throw new Error("Stage directions or markdown markers were not sanitized from answer_text.");
 }
 
-const result = await handleNpcTurnPayload(payload, {
-  timeoutMs: Number.parseInt(process.env.TEST_NPC_TIMEOUT_MS || "15000", 10)
+const result = await requestNpcSmoke(payload);
+
+let repairCallCount = 0;
+const repairRequestBodies = [];
+const validationRepairResult = await handleNpcTurnPayload(payload, {
+  apiKey: "test-key",
+  timeoutMs: 1000,
+  fetchImpl: async (_url, init = {}) => {
+    repairCallCount += 1;
+    repairRequestBodies.push(JSON.parse(String(init.body || "{}")));
+    return new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content:
+                repairCallCount === 1
+                  ? JSON.stringify({
+                      answer_text: "I do not know.",
+                      truthfulness: "evasive",
+                      suspicion_delta: 0,
+                      revealed_clue_id: null,
+                      contradiction_risk: 5,
+                      npc_mood: "controlled",
+                      notebook_hint: "No useful note."
+                    })
+                  : JSON.stringify({
+                      answer_text: "The inventory log puts me near the cart at 21:10, but it was a stock count, not the prototype.",
+                      truthfulness: "lie",
+                      suspicion_delta: 1,
+                      revealed_clue_id: "clue_ivo_gap",
+                      contradiction_risk: 62,
+                      npc_mood: "controlled",
+                      notebook_hint: "Ivo ties the 21:10 gap to inventory."
+                    })
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "content-type": "application/json"
+        }
+      }
+    );
+  }
 });
+
+if (validationRepairResult.source !== "groq" || validationRepairResult.meta.fallbackReason !== null) {
+  throw new Error("Groq validation repair retry did not recover from a rejected first model answer.");
+}
+if (repairCallCount !== 2) {
+  throw new Error("Groq validation repair must use exactly one retry after a rejected provider answer.");
+}
+if (!JSON.stringify(repairRequestBodies[1]?.messages || []).includes("Previous model response failed validation")) {
+  throw new Error("Groq validation repair retry did not include validator feedback for the model.");
+}
+if (JSON.stringify(repairRequestBodies[1]).includes("culpritSuspectId") || JSON.stringify(repairRequestBodies[1]).includes("trueMotiveId")) {
+  throw new Error("Groq validation repair retry leaked hidden truth-table fields.");
+}
+if (!validationRepairResult.meta.validationWarnings.some((warning) => warning.includes("model_validation_retry"))) {
+  throw new Error("Groq validation repair retry must be auditable in metadata warnings.");
+}
+
+const validationFailoverAuthorizations = [];
+const validationFailoverResult = await handleNpcTurnPayload(payload, {
+  apiKey: "primary-validation-key",
+  apiKeys: ["backup-validation-key"],
+  timeoutMs: 1000,
+  fetchImpl: async (_url, init = {}) => {
+    const authorization = init.headers?.authorization || init.headers?.Authorization || "";
+    validationFailoverAuthorizations.push(authorization);
+    const content =
+      authorization === "Bearer backup-validation-key"
+        ? JSON.stringify({
+            answer_text: "The inventory log puts me near the cart at 21:10, but that was a stock count.",
+            truthfulness: "lie",
+            suspicion_delta: 1,
+            revealed_clue_id: "clue_ivo_gap",
+            contradiction_risk: 62,
+            npc_mood: "controlled",
+            notebook_hint: "Ivo ties the 21:10 gap to inventory."
+          })
+        : JSON.stringify({
+            answer_text: "I do not know.",
+            truthfulness: "evasive",
+            suspicion_delta: 0,
+            revealed_clue_id: null,
+            contradiction_risk: 5,
+            npc_mood: "controlled",
+            notebook_hint: "No useful note."
+          });
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { content } }]
+      }),
+      {
+        status: 200,
+        headers: {
+          "content-type": "application/json"
+        }
+      }
+    );
+  }
+});
+
+if (validationFailoverResult.source !== "groq" || validationFailoverResult.meta.fallbackReason !== null) {
+  throw new Error("Groq validation failover did not try a backup key after repair failed on the primary key.");
+}
+if (validationFailoverAuthorizations.join("|") !== "Bearer primary-validation-key|Bearer primary-validation-key|Bearer backup-validation-key") {
+  throw new Error("Groq validation failover did not use primary, primary repair, then backup key order.");
+}
 
 const invalidJsonResult = await handleNpcTurnPayload(payload, {
   apiKey: "test-key",
@@ -352,6 +530,68 @@ if (rateLimitResult.source !== "fallback" || rateLimitResult.meta.fallbackReason
   throw new Error("429 fallback path failed.");
 }
 
+const failoverAuthorizations = [];
+const failoverResult = await handleNpcTurnPayload(payload, {
+  apiKey: "primary-test-key",
+  apiKeys: ["backup-test-key"],
+  timeoutMs: 1000,
+  fetchImpl: async (_url, init = {}) => {
+    const authorization = init.headers?.authorization || init.headers?.Authorization || "";
+    failoverAuthorizations.push(authorization);
+    if (authorization === "Bearer primary-test-key") {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Rate limit reached"
+          }
+        }),
+        {
+          status: 429,
+          headers: {
+            "content-type": "application/json",
+            "retry-after": "2"
+          }
+        }
+      );
+    }
+    if (authorization === "Bearer backup-test-key") {
+      return new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  answer_text: "I was checking the inventory log at 21:10, not the camera. Ask Mara about the cart.",
+                  truthfulness: "lie",
+                  suspicion_delta: 1,
+                  revealed_clue_id: null,
+                  contradiction_risk: 41,
+                  npc_mood: "controlled",
+                  notebook_hint: "Ivo anchors himself to the inventory log."
+                })
+              }
+            }
+          ]
+        }),
+        {
+          status: 200,
+          headers: {
+            "content-type": "application/json"
+          }
+        }
+      );
+    }
+    throw new Error("Unexpected authorization header in failover test.");
+  }
+});
+
+if (failoverResult.source !== "groq" || failoverResult.meta.fallbackReason !== null) {
+  throw new Error("Groq multi-key failover did not recover after a primary-key 429.");
+}
+if (failoverAuthorizations.join("|") !== "Bearer primary-test-key|Bearer backup-test-key") {
+  throw new Error("Groq multi-key failover did not try configured keys in order without exposing key values.");
+}
+
 console.log(
   JSON.stringify(
     {
@@ -363,7 +603,8 @@ console.log(
       meta: result.meta,
       fallbackChecks: {
         invalidJson: invalidJsonResult.meta.fallbackReason,
-        rateLimit: rateLimitResult.meta.fallbackReason
+        rateLimit: rateLimitResult.meta.fallbackReason,
+        multiKeyFailover: failoverResult.source
       }
     },
     null,

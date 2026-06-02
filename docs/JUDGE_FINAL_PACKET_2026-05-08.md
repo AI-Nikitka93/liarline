@@ -12,6 +12,7 @@ npm run test:game-engine
 npm run test:npc-turn
 npm run test:live-suspects
 npm run test:demo-route
+npm run test:demo-video-package
 npm run test:ui-copy
 npm run test:mobile-ui
 npm run test:visual-dna
@@ -25,8 +26,14 @@ npm run test:release-ops
 npm run test:release-postlaunch
 npm run test:release-playthrough
 npm run test:release-browser
+npm run test:production-layout
 npm run test:contest-final-packet
 npm run test:judge-readiness
+npm run test:win-push-phase1
+npm run test:win-push-phase1-readiness
+npm run test:win-push-phase2-ai-quality
+npm run test:win-push-phase2-quarantine
+npm run test:win-push-phase3-provider-proof
 ```
 
 Strict final gate after uploading video:
@@ -34,7 +41,7 @@ Strict final gate after uploading video:
 ```powershell
 $env:LIARLINE_PUBLIC_URL="https://liarline.vercel.app"
 $env:LIARLINE_GITHUB_URL="https://github.com/AI-Nikitka93/liarline"
-$env:LIARLINE_DEMO_VIDEO_URL="https://youtu.be/YOUR_VIDEO_ID"
+$env:LIARLINE_DEMO_VIDEO_URL=$env:REAL_UPLOADED_LIARLINE_DEMO_VIDEO_URL
 $env:LIARLINE_STRICT_SUBMISSION="1"
 npm run test:judge-readiness
 ```
@@ -49,8 +56,14 @@ Passing local gates without `LIARLINE_DEMO_VIDEO_URL` proves local package quali
 | Meaningful AI use | Groq `llama-3.1-8b-instant` performs suspect dialogue in the interrogation loop | `npm run test:npc-turn` and `npm run test:live-suspects` |
 | Technical execution | Deterministic engine owns truth, clue unlocks, AP, accusation, and resolution | `npm run build` and `npm run test:game-engine` |
 | Creativity and fun | Judge route shows AI suspect answer, contradiction, persona shift, accusation, and rating | `npm run test:demo-route` and `npm run test:release-playthrough` |
-| Mobile support | Mobile dock, keyboard-safe actions, visual states, and no download surface | `npm run test:mobile-ui` and `npm run test:release-browser` |
+| Demo video package | Local EN/RU video package is 1-3 minutes, recorded from current production alias, narrated, captioned, and no-overclaim | `npm run test:demo-video-package` |
+| Mobile support | Mobile dock, keyboard-safe actions, visual states, 44px tap targets, and no download surface | `npm run test:mobile-ui`, `npm run test:release-browser`, and `npm run test:production-layout` |
 | Submission quality | README, Devpost copy, AI-use explanation, and no-overclaim boundary | `npm run test:public-docs` and `npm run test:contest-final-packet` |
+| Current contest/source truth | 2026-05-08 Devpost facts, active TODO source, score-risk baseline, AI-game anti-patterns, and no-drift anchor | `npm run test:win-push-phase1` |
+| Current readiness truth | `docs/AI_PROVIDER_STATUS_CURRENT.md`, external dependency map, backup AI decision, skill-stack decision, and risk baseline are current for 2026-05-08 | `npm run test:win-push-phase1-readiness` |
+| AI actor quality | Failure-mode quarantine, suspect voice rubrics, first Theo wow, Ivo persona shift, Mara/Lena voice distance, and no final-answer model language | `npm run test:win-push-phase2-ai-quality` |
+| AI answer quarantine | Playable prompt language, allowed game anchors, generic/internal/repeat rejection, non-impacting fallback, bilingual transcript audit, manual review checklist, and latency boundary | `npm run test:win-push-phase2-quarantine` |
+| Provider and proof-chain fairness | Backup-provider no-switch decision, secret-safe matrix, live regressions, camera-vs-cart proof chain, accusation risk, rating fairness, and motive parity | `npm run test:win-push-phase3-provider-proof` |
 
 ## Devpost paste fields
 
@@ -87,10 +100,11 @@ Next.js App Router, React, Tailwind CSS v4, Lucide React, Groq, LocalStorage, Pl
 - If the run uses fallback, label it honestly and do not call it live AI.
 - Do not record stale UI from an old build.
 - Keep final video between 1 and 3 minutes.
+- Use `docs/videos/liarline-demo-en-v1.mp4` as the primary upload candidate after `npm run test:demo-video-package` passes.
 
 ## External blockers
 
-- Demo video must be uploaded to a supported public URL.
+- Demo video package exists locally, but the selected video must still be uploaded to a supported public URL.
 - Devpost profile/form must honestly satisfy student-only eligibility and team size rules.
 - Final GitHub repo must include the current code state intended for judging.
 

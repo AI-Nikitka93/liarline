@@ -21,7 +21,9 @@ for (const command of [
   "npm run build",
   "npm run test:npc-turn",
   "npm run test:demo-route",
+  "npm run test:demo-video-package",
   "npm run test:release-browser",
+  "npm run test:production-layout",
   "npm run test:judge-readiness"
 ]) {
   assert.ok(packet.includes(command), `judge final packet missing command ${command}`);

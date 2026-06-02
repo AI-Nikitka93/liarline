@@ -1,0 +1,45 @@
+name: Feature request
+description: Suggest a scoped improvement without blurring the current one-case contest release.
+title: "Feature: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Current public scope is one playable case. Future ideas are welcome, but please separate them from current submission claims.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or player need
+      description: What player or judge-facing problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Interrogation
+        - Notebook / evidence
+        - Accusation / resolution
+        - AI quality
+        - Mobile UX
+        - Localization
+        - Release / Devpost package
+    validations:
+      required: true
+  - type: checkboxes
+    id: guardrails
+    attributes:
+      label: Scope guardrails
+      options:
+        - label: This can be described as future work if it is not implemented yet.
+          required: true
+        - label: This does not require exposing hidden truth data to the live AI model.
+          required: true

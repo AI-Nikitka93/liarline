@@ -8,6 +8,8 @@ const OUT_DIR = path.join(ROOT, "docs", "videos");
 const RAW_DIR = path.join(OUT_DIR, "raw-v1");
 const SLIDE_DIR = path.join(OUT_DIR, "slides");
 const BASE_URL = process.env.LIARLINE_BASE_URL || "http://127.0.0.1:55046/";
+const STATE_DOC = existsSync(path.join(ROOT, "docs", "STATE.md")) ? readFileSync(path.join(ROOT, "docs", "STATE.md"), "utf8") : "";
+const PRODUCTION_DEPLOY_ID = process.env.LIARLINE_PRODUCTION_DEPLOY_ID || STATE_DOC.match(/production deploy `(dpl_[^`]+)`/)?.[1] || "";
 const PROJECT_SLUG = "liarline";
 const VIEWPORT = { width: 390, height: 844 };
 
@@ -411,6 +413,8 @@ function writeManifest(file, lang, pkg, result) {
     generatedAt: new Date().toISOString(),
     presentationFormat: "HYBRID_EXPLAINER",
     route: BASE_URL,
+    productionDeployId: PRODUCTION_DEPLOY_ID,
+    recordedAgainstPublicUrl: BASE_URL,
     viewport: VIEWPORT,
     target: "Devpost AI Game Week demo video package",
     contestSources: [contestSource, contestDatesSource],
@@ -446,6 +450,8 @@ function writeManifest(file, lang, pkg, result) {
       captionEventsPerMinute: Number((result.events.length / (result.duration / 60)).toFixed(2)),
       captionZone: "top stable overlay",
       noSecretSurfaces: true,
+      productionDeployId: PRODUCTION_DEPLOY_ID,
+      recordedAgainstPublicUrl: BASE_URL,
       voiceover: "base_capture_only",
       testsRunBeforeRecording: ["npm run test:game-engine", "npm run test:demo-route"],
       liveDemoRouteVerified: true,
@@ -481,6 +487,8 @@ const bilingualManifest = {
   project: "Liarline",
   reason: "Project has RU/EN dictionaries and locale persistence, so split language deliverables are required.",
   generatedAt: new Date().toISOString(),
+  productionDeployId: PRODUCTION_DEPLOY_ID,
+  recordedAgainstPublicUrl: BASE_URL,
   packages: results.map((item) => ({
     lang: item.lang,
     durationSeconds: Number(item.duration.toFixed(3)),

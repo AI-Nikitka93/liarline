@@ -1,4 +1,5 @@
 import type { Clue, DetectiveRating, GameState, LieArchetype, Motive, Outcome, PublicFact, Suspect, TimelineEvent } from "../game/types";
+import type { FeedbackCategory } from "../release/feedbackIntake";
 
 export type Locale = "en" | "ru";
 
@@ -110,6 +111,7 @@ type Dictionary = {
     finalSubmitRisk: string;
     acknowledgeRiskLabel: string;
     submitDisabledRisk: string;
+    accusationMissingSelection: string;
     noActionReturn: string;
     safeRestartLine: string;
     evidenceType: string;
@@ -137,6 +139,13 @@ type Dictionary = {
     caseBeatDone: string;
     caseBeatLocked: string;
     suspectSelectAria: (name: string, suspicion: number) => string;
+    feedbackTitle: string;
+    feedbackBody: string;
+    feedbackNoteAria: string;
+    feedbackPlaceholder: string;
+    feedbackSubmit: string;
+    feedbackSaved: string;
+    feedbackCategories: Record<FeedbackCategory, string>;
   };
   suspicion: {
     label: string;
@@ -182,7 +191,7 @@ type Dictionary = {
   };
 };
 
-export const DEFAULT_LOCALE: Locale = "ru";
+export const DEFAULT_LOCALE: Locale = "en";
 
 export const dictionaries: Record<Locale, Dictionary> = {
   en: {
@@ -225,7 +234,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       firstQuestionCost: "Costs 1 AP",
       questionActionCost: "-1 AP",
       actionPointsRule: (remaining, total) => `Each question costs 1 AP. ${remaining}/${total} remain.`,
-      accuseLocked: (answered, needed) => `Accusation opens after ${needed} answers. Current: ${answered}.`,
+      accuseLocked: (answered, needed) => `Accusation opens after ${needed} live answers and the camera-vs-cart contradiction. Current: ${answered}.`,
       clueOpened: "clue opened",
       customQuestionAria: "Short question to the suspect",
       sendQuestion: "Send question",
@@ -312,6 +321,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       finalSubmitRisk: "Final means final: 1 wrong accusation creates a wrong-outcome ending.",
       acknowledgeRiskLabel: "I understand this is the one final accusation.",
       submitDisabledRisk: "Confirm the final risk before submitting.",
+      accusationMissingSelection: "Choose a suspect and motive before submitting.",
       noActionReturn: "No action points remain. Restart from the top bar to try a new line.",
       safeRestartLine: "Restart is always available from the top bar and starts a clean local case.",
       evidenceType: "Type",
@@ -320,9 +330,9 @@ export const dictionaries: Record<Locale, Dictionary> = {
       proofMotive: "Motive check",
       proofEvidence: "Evidence check",
       proofEvidenceSelected: (count) => `${count}/2 evidence selected`,
-      proofReady: "Evidence chain ready",
+      proofReady: "Evidence slots filled",
       proofIncomplete: "Evidence chain weak",
-      selectedEvidenceWarning: "A weak chain can still accuse, but it can only produce a partial or wrong-feeling result.",
+      selectedEvidenceWarning: "This only checks selected clue count. The verdict still checks whether those clues actually support the suspect and motive.",
       detectiveRating: "Detective work",
       reverseReconstruction: "Reverse reconstruction",
       missedOpportunity: "What you could still use",
@@ -338,7 +348,21 @@ export const dictionaries: Record<Locale, Dictionary> = {
       caseBeatCurrent: "current",
       caseBeatDone: "done",
       caseBeatLocked: "locked",
-      suspectSelectAria: (name, suspicion) => `Select ${name}. Suspicion ${suspicion}.`
+      suspectSelectAria: (name, suspicion) => `Select ${name}. Suspicion ${suspicion}.`,
+      feedbackTitle: "Player feedback",
+      feedbackBody: "Leave one post-case signal. It stores locally with outcome metadata only.",
+      feedbackNoteAria: "Optional feedback note",
+      feedbackPlaceholder: "What felt unclear or unfair?",
+      feedbackSubmit: "Save feedback",
+      feedbackSaved: "feedback saved locally",
+      feedbackCategories: {
+        ai_quality: "AI quality",
+        missed_contradiction: "Missed contradiction",
+        notebook_clarity: "Notebook clarity",
+        unfair_accusation: "Unfair accusation",
+        mobile_bug: "Mobile bug",
+        localization_issue: "Localization issue"
+      }
     },
     suspicion: {
       label: "Suspicion",
@@ -386,7 +410,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       recon_camera_break: "Theo broke the camera before the theft, creating a tempting false suspect.",
       recon_cart_log: "The cart log proves the prototype still moved after the camera problem.",
       recon_ivo_gap: "Ivo's inventory story leaves the 21:10 gap exposed.",
-      recon_final_verdict: "With motive and evidence aligned, Ivo is the only version that holds.",
+      recon_final_verdict: "The final verdict holds because motive and evidence align on Ivo.",
       recon_wrong_verdict: "The accusation missed the cart gap and let the wrong theory lead."
     },
     lieArchetypes: {
@@ -579,7 +603,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       firstQuestionCost: "Стоит 1 ОД",
       questionActionCost: "-1 ОД",
       actionPointsRule: (remaining, total) => `Каждый вопрос стоит 1 ОД. Осталось ${remaining}/${total}.`,
-      accuseLocked: (answered, needed) => `Обвинение откроется после ${needed} ответов. Сейчас: ${answered}.`,
+      accuseLocked: (answered, needed) => `Обвинение откроется после ${needed} live-ответов и противоречия камера-тележка. Сейчас: ${answered}.`,
       clueOpened: "улика открыта",
       customQuestionAria: "Короткий вопрос подозреваемому",
       sendQuestion: "Отправить вопрос",
@@ -666,6 +690,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       finalSubmitRisk: "Финал есть финал: 1 неверное обвинение ведёт к ошибочной развязке.",
       acknowledgeRiskLabel: "Я понимаю, что это одно финальное обвинение.",
       submitDisabledRisk: "Подтвердите риск финала перед отправкой.",
+      accusationMissingSelection: "Выберите подозреваемого и мотив перед отправкой.",
       noActionReturn: "Очки действий закончились. Начните заново через верхнюю панель, чтобы проверить другую линию.",
       safeRestartLine: "Заново всегда доступно в верхней панели и запускает чистое локальное дело.",
       evidenceType: "Тип",
@@ -674,9 +699,9 @@ export const dictionaries: Record<Locale, Dictionary> = {
       proofMotive: "Проверка причины",
       proofEvidence: "Проверка улик",
       proofEvidenceSelected: (count) => `Выбрано улик: ${count}/2`,
-      proofReady: "Цепочка улик готова",
+      proofReady: "Улики выбраны",
       proofIncomplete: "Цепочка улик слабая",
-      selectedEvidenceWarning: "Слабая цепочка всё ещё позволяет обвинить, но может дать только частичную или ошибочную развязку.",
+      selectedEvidenceWarning: "Это проверка числа выбранных улик. Итог всё равно проверяет, поддерживают ли они подозреваемого и мотив.",
       detectiveRating: "Работа детектива",
       reverseReconstruction: "Обратная реконструкция",
       missedOpportunity: "Что ещё можно было использовать",
@@ -692,7 +717,21 @@ export const dictionaries: Record<Locale, Dictionary> = {
       caseBeatCurrent: "сейчас",
       caseBeatDone: "готово",
       caseBeatLocked: "закрыто",
-      suspectSelectAria: (name, suspicion) => `Выбрать ${name}. Подозрение ${suspicion}.`
+      suspectSelectAria: (name, suspicion) => `Выбрать ${name}. Подозрение ${suspicion}.`,
+      feedbackTitle: "Отзыв игрока",
+      feedbackBody: "Оставьте один сигнал после дела. Локально сохраняются только категория, итог и заметка.",
+      feedbackNoteAria: "Необязательная заметка к отзыву",
+      feedbackPlaceholder: "Что было непонятно или нечестно?",
+      feedbackSubmit: "Сохранить отзыв",
+      feedbackSaved: "отзыв сохранён локально",
+      feedbackCategories: {
+        ai_quality: "Качество AI",
+        missed_contradiction: "Пропущенное противоречие",
+        notebook_clarity: "Ясность блокнота",
+        unfair_accusation: "Нечестное обвинение",
+        mobile_bug: "Мобильная ошибка",
+        localization_issue: "Проблема локализации"
+      }
     },
     suspicion: {
       label: "Подозрение",
@@ -740,7 +779,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       recon_camera_break: "Тео сломал камеру до кражи, из-за чего стал удобной ложной целью.",
       recon_cart_log: "Лог тележки доказывает, что прототип всё равно вывезли после проблемы с камерой.",
       recon_ivo_gap: "Версия Иво про инвентарь оставляет открытым провал около 21:10.",
-      recon_final_verdict: "Когда мотив и улики сходятся, держится только версия с Иво.",
+      recon_final_verdict: "Финальный вердикт держится, потому что мотив и улики сходятся на Иво.",
       recon_wrong_verdict: "Обвинение пропустило провал с тележкой и пошло за ложной версией."
     },
     lieArchetypes: {

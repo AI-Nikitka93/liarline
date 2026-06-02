@@ -5,14 +5,28 @@ import path from "node:path";
 import process from "node:process";
 import { promisify } from "node:util";
 import { execFile } from "node:child_process";
+import { loadLocalEnv as loadLocalEnvFile } from "./load-local-env.mjs";
 import { handleNpcTurnPayload } from "../src/api/npc-turn.ts";
 import { applyNpcTurnResult, buildNpcTurnRequest, createInitialGameState } from "../src/game/gameEngine.ts";
 import { FIRST_INTERROGATION_SUSPECT_ID } from "../src/game/seedCase.ts";
+import {
+  AI_LATENCY_BOUNDARY,
+  AI_MANUAL_REVIEW_CHECKLIST,
+  LIVE_TRANSCRIPT_AUDIT_MATRIX
+} from "../src/release/winPushPhase2Quarantine.ts";
 
 const ROOT = process.cwd();
 const ENV_PATH = path.join(ROOT, ".env.local");
-const REPORT_PATH = path.join(ROOT, "docs", "AI_SUSPECT_VOICE_RUN_2026-05-06.md");
+const REPORT_PATH = path.join(ROOT, "docs", "AI_SUSPECT_VOICE_RUN_CURRENT.md");
 const execFileAsync = promisify(execFile);
+const latencyBoundary = AI_LATENCY_BOUNDARY;
+const HARD_LATENCY_RETRY_ATTEMPTS = 2;
+const RUN_DATE = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Minsk",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit"
+}).format(new Date());
 
 function parseEnv(raw) {
   const env = {};
@@ -32,11 +46,7 @@ function parseEnv(raw) {
 }
 
 async function loadLocalEnv() {
-  if (!existsSync(ENV_PATH)) return;
-  const parsed = parseEnv(await readFile(ENV_PATH, "utf8"));
-  for (const [key, value] of Object.entries(parsed)) {
-    if (!(key in process.env)) process.env[key] = value;
-  }
+  loadLocalEnvFile(ENV_PATH);
 }
 
 function simulatedFirstTheoCollapse(state) {
@@ -121,20 +131,58 @@ function scenarioQualityFlag(scenario, result) {
   if (/^(you|вы)\b/i.test(answer.trim()) || /\b(you saw|you heard|you cannot|вы видели|вы слышали|вы не можете)\b/i.test(answer)) {
     return "wrong dialogue perspective";
   }
+  if (/тележк[а-я]*\s+вывезли/i.test(answer)) {
+    return "broken russian agreement";
+  }
   if (scenario.mustMention?.some((pattern) => !pattern.test(normalized))) {
     return "missing required game detail";
   }
   if (scenario.mustAvoid?.some((pattern) => pattern.test(normalized))) {
     return "repeated or weak denial";
   }
+  if (scenario.expectedVoiceMarkers?.some((pattern) => !pattern.test(normalized))) {
+    return "missing expected voice marker";
+  }
   return "none";
+}
+
+function latencyFlag(latencyMs) {
+  if (latencyMs > latencyBoundary.hardFailMs) return "hard-fail";
+  if (latencyMs > latencyBoundary.problemMs) return "problem";
+  if (latencyMs > latencyBoundary.warningMs) return "warning";
+  return "ok";
+}
+
+function voiceDistance(rows) {
+  const signatures = rows.map((row) =>
+    [
+      row.performanceRole,
+      row.pressureState,
+      row.answer.toLowerCase().split(/\s+/).slice(0, 4).join(" "),
+      row.answer.toLowerCase().includes("camera") || row.answer.toLowerCase().includes("камера") ? "camera" : "",
+      row.answer.toLowerCase().includes("cart") || row.answer.toLowerCase().includes("тележ") ? "cart" : "",
+      row.answer.toLowerCase().includes("rivalry") || row.answer.toLowerCase().includes("сопернич") ? "rivalry" : "",
+      row.answer.toLowerCase().includes("saw") || row.answer.toLowerCase().includes("heard") || row.answer.toLowerCase().includes("видел") || row.answer.toLowerCase().includes("слыш") ? "witness" : ""
+    ]
+      .filter(Boolean)
+      .join("|")
+  );
+  return new Set(signatures).size;
 }
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function requestLiveWithRetries(payload, attempts = 3) {
+function retryDelayMs(result, attempt) {
+  const retryAfterMs = Number.parseInt(result?.meta?.retryAfter || "", 10) * 1000;
+  if (Number.isFinite(retryAfterMs) && retryAfterMs > 0) return retryAfterMs;
+  if (result?.meta?.fallbackReason === "rate_limit") return Math.min(30000 * attempt, 90000);
+  if (result?.meta?.fallbackReason === "invalid_model_json") return 3000 * attempt;
+  return 2500 * attempt;
+}
+
+async function requestLiveWithRetries(payload, attempts = 8) {
   const failures = [];
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     let result = await handleNpcTurnPayload(payload, { timeoutMs: 15000 });
@@ -142,22 +190,63 @@ async function requestLiveWithRetries(payload, attempts = 3) {
       result = await handleNpcTurnPayload(payload, { timeoutMs: 90000, fetchImpl: powershellFetch });
     }
     if (result.source === "groq") return result;
-    failures.push(result.meta.fallbackReason || "unknown");
+    failures.push(
+      [
+        result.meta.fallbackReason || "unknown",
+        ...(result.meta.validationWarnings || []).slice(0, 2)
+      ].join(":")
+    );
     if (attempt < attempts) {
-      const retryAfterMs = Number.parseInt(result.meta.retryAfter || "", 10) * 1000;
-      await delay(Number.isFinite(retryAfterMs) && retryAfterMs > 0 ? retryAfterMs : 2500 * attempt);
+      await delay(retryDelayMs(result, attempt));
     }
   }
   throw new Error(`live Groq unavailable after ${attempts} attempts: ${failures.join(", ")}`);
+}
+
+async function requestScenarioWithLatencyRecovery(scenario, payload) {
+  const attempts = [];
+  for (let attempt = 1; attempt <= HARD_LATENCY_RETRY_ATTEMPTS + 1; attempt += 1) {
+    const result = await requestLiveWithRetries(payload);
+    const flag = scenarioQualityFlag(scenario, result);
+    const currentLatencyFlag = latencyFlag(result.meta.latencyMs);
+    attempts.push({
+      latencyMs: result.meta.latencyMs,
+      latencyFlag: currentLatencyFlag,
+      qualityFlag: flag
+    });
+
+    if (flag !== "none" || currentLatencyFlag !== "hard-fail") {
+      return {
+        result,
+        flag,
+        hardLatencyRetry: attempt > 1,
+        attempts
+      };
+    }
+
+    if (attempt <= HARD_LATENCY_RETRY_ATTEMPTS) {
+      await delay(2500 * attempt);
+    }
+  }
+
+  const lastAttempt = attempts.at(-1);
+  throw new Error(
+    `${scenario.suspectId} live latency exceeded hard boundary after retry: ${lastAttempt?.latencyMs ?? "unknown"} ms`
+  );
 }
 
 async function powershellFetch(url, init = {}) {
   const dir = await mkdtemp(path.join(tmpdir(), "liarline-groq-"));
   const bodyPath = path.join(dir, "body.json");
   await writeFile(bodyPath, typeof init.body === "string" ? init.body : "", "utf8");
+  const authorization =
+    init.headers?.authorization ||
+    init.headers?.Authorization ||
+    (typeof init.headers?.get === "function" ? init.headers.get("authorization") : "") ||
+    `Bearer ${process.env.GROQ_API_KEY || ""}`;
   const script = [
     "$ErrorActionPreference = 'Stop'",
-    "$headers = @{ Authorization = \"Bearer $env:GROQ_API_KEY\" }",
+    "$headers = @{ Authorization = $env:LIARLINE_GROQ_AUTH }",
     "$body = Get-Content -Raw -LiteralPath $env:LIARLINE_GROQ_BODY",
     "try {",
     "  $response = Invoke-RestMethod -Uri $env:LIARLINE_GROQ_URL -Method Post -Headers $headers -ContentType 'application/json' -Body $body -TimeoutSec 75",
@@ -180,6 +269,7 @@ async function powershellFetch(url, init = {}) {
     const { stdout } = await execFileAsync("powershell", ["-NoProfile", "-Command", script], {
       env: {
         ...process.env,
+        LIARLINE_GROQ_AUTH: authorization,
         LIARLINE_GROQ_BODY: bodyPath,
         LIARLINE_GROQ_URL: url
       },
@@ -201,8 +291,8 @@ async function powershellFetch(url, init = {}) {
 
 await loadLocalEnv();
 
-if (!process.env.GROQ_API_KEY) {
-  throw new Error("GROQ_API_KEY is required for the live suspect voice run.");
+if (!process.env.GROQ_API_KEY && !process.env.GROQ_API_KEYS && !Object.keys(process.env).some((key) => /^GROQ_API_KEY_\d+$/.test(key))) {
+  throw new Error("GROQ_API_KEY, GROQ_API_KEYS, or GROQ_API_KEY_1...GROQ_API_KEY_N is required for the live suspect voice run.");
 }
 
 const baseState = {
@@ -211,60 +301,135 @@ const baseState = {
 };
 const collapsedState = simulatedFirstTheoCollapse(baseState);
 const repeatedIvoState = simulatedIvoWeakRepeatContext(collapsedState);
+const maraPartialTruthState = {
+  ...baseState,
+  suspects: {
+    ...baseState.suspects,
+    suspect_mara: {
+      ...baseState.suspects.suspect_mara,
+      visibleState: {
+        ...baseState.suspects.suspect_mara.visibleState,
+        suspicion: 45
+      }
+    }
+  }
+};
 
-const scenarios = [
-  {
-    suspectId: "suspect_ivo",
-    state: collapsedState,
-    question: "The cart log points at inventory. Why does that sound rehearsed?",
+const SCENARIO_STATES = {
+  first_theo: baseState,
+  ivo_pressure: collapsedState,
+  mara_partial_truth: maraPartialTruthState,
+  lena_direct_witness: baseState
+};
+
+const QUALITY_RULES_BY_BEAT = {
+  "en:first_theo": {
+    expectedBeat: "confused witness with shaky timing",
+    expectedVoiceMarkers: [/camera|minute|21:05|timing|theft|panic/],
+    mustMention: [/camera/, /21:05|minute|timing/],
+    mustAvoid: [/21:10/]
+  },
+  "en:ivo_pressure": {
     expectedBeat: "protective liar under contradiction",
+    expectedVoiceMarkers: [/inventory|cart|log|21:10|break room|routine/],
     mustMention: [/21:10|cart|inventory|log|count|break room/],
-    mustAvoid: [/my inventory story has an uncovered gap|i cannot account|i stole|confession/]
+    mustAvoid: [/my inventory story has an uncovered gap|i cannot account|i stole|confession|nothing unusual|everything (?:was |is )?normal|nothing more/]
   },
-  {
-    suspectId: "suspect_mara",
-    state: baseState,
-    question: "What part of your rivalry are you leaving out?",
-    expectedBeat: "motive guardian with partial truth"
+  "en:mara_partial_truth": {
+    expectedBeat: "motive guardian with partial truth",
+    expectedVoiceMarkers: [/prototype|lab/, /21:05|after/],
+    mustMention: [/prototype|lab/, /21:05|after/],
+    mustAvoid: [/nothing to do with|not about.*disappearance$/]
   },
-  {
-    suspectId: "suspect_theo",
-    state: baseState,
-    question: "The camera failed before the theft. What minute are you unsure about?",
-    expectedBeat: "confused witness with shaky timing"
+  "en:lena_direct_witness": {
+    expectedBeat: "direct witness with blunt facts",
+    expectedVoiceMarkers: [/cart|storage|door|saw|heard/],
+    mustMention: [/cart/, /storage|door/]
   },
-  {
-    suspectId: "suspect_lena",
-    state: baseState,
-    question: "State only what you saw about the cart.",
-    expectedBeat: "direct witness with blunt facts"
+  "ru:first_theo": {
+    expectedBeat: "RU confused witness with shaky timing",
+    responseLocale: "ru",
+    expectedVoiceMarkers: [/камер|минут|21:05|времен|краж|паник|нерв/],
+    mustMention: [/камер/, /21:05|минут|времен/],
+    mustAvoid: [/i |camera|cart|inventory|prototype|routine|confession/]
   },
-  {
-    suspectId: "suspect_ivo",
-    state: repeatedIvoState,
-    question: "Какой журнал инвентаря доказывает, что вас не было у тележки в 21:10?",
+  "ru:ivo_pressure": {
     expectedBeat: "RU protective liar gives new 21:10/cart pressure answer",
     responseLocale: "ru",
+    expectedVoiceMarkers: [/21:10|тележк|инвентар|журнал|минут/],
     mustMention: [/21:10|тележк|инвентар|журнал|минут/],
-    mustAvoid: [/всегда считаю все вещи до сдачи|комнате отдыха точно нет|моя версия.*оставляет провал|я украл|признан/]
+    mustAvoid: [/всегда считаю все вещи до сдачи|комнате отдыха точно нет|моя версия.*оставляет провал|я украл|признан|pressure point|inventory story|вс[её] было нормально|вс[её] нормально|вс[её] в порядке|выгляд[а-я]* нормально|ничего необычного/]
+  },
+  "ru:mara_partial_truth": {
+    expectedBeat: "RU motive guardian with partial truth",
+    responseLocale: "ru",
+    expectedVoiceMarkers: [/прототип|лаборатор/, /21:05|после/],
+    mustMention: [/прототип|лаборатор/, /21:05|после/],
+    mustAvoid: [/nothing|rivalry|research|publish|prototype|lab|не связан[а-я]* с краж|не скажу[^.!?]{0,80}связан|не могл?[ао]?[^.!?]{0,40}украсть/]
+  },
+  "ru:lena_direct_witness": {
+    expectedBeat: "RU direct witness with blunt facts",
+    responseLocale: "ru",
+    expectedVoiceMarkers: [/тележк|склад|двер|видел|слышал/],
+    mustMention: [/тележк/, /склад|двер/],
+    mustAvoid: [/cart|storage|door|saw|heard|motive|theory/]
   }
-];
+};
+
+const LIVE_TRANSCRIPT_AUDIT_SCENARIOS = LIVE_TRANSCRIPT_AUDIT_MATRIX.map((audit) => {
+  const quality = QUALITY_RULES_BY_BEAT[`${audit.locale}:${audit.beatId}`];
+  if (!quality) {
+    throw new Error(`Missing live transcript quality rule for ${audit.locale}:${audit.beatId}`);
+  }
+  return {
+    ...audit,
+    state: SCENARIO_STATES[audit.beatId],
+    responseLocale: audit.locale,
+    ...quality
+  };
+});
+
+const repeatRegressionScenario = {
+  suspectId: "suspect_ivo",
+  state: repeatedIvoState,
+  question: "Не повторяйте прошлое отрицание. Назовите новую проверяемую деталь про журнал инвентаря и тележку в 21:10.",
+  locale: "ru",
+  beatId: "ivo_repeat_regression",
+  expectedBeat: "RU protective liar gives new 21:10/cart pressure answer",
+  responseLocale: "ru",
+  expectedVoiceMarkers: [/21:10|тележк|инвентар|журнал|минут/],
+  mustMention: [/21:10|тележк|инвентар|журнал|минут/],
+  mustAvoid: [/всегда считаю все вещи до сдачи|комнате отдыха точно нет|моя версия.*оставляет провал|я украл|признан|вс[её] было нормально|вс[её] нормально|вс[её] в порядке|выгляд[а-я]* нормально|ничего необычного/]
+};
+
+const scenarios = [...LIVE_TRANSCRIPT_AUDIT_SCENARIOS, repeatRegressionScenario];
 
 const rows = [];
 
 for (const scenario of scenarios) {
+  if (rows.length > 0) {
+    await delay(2500);
+  }
   const payload = buildNpcTurnRequest(scenario.state, scenario.suspectId, scenario.question, scenario.responseLocale || "en");
-  const result = await requestLiveWithRetries(payload);
-  const flag = scenarioQualityFlag(scenario, result);
+  const { result, flag, hardLatencyRetry, attempts } = await requestScenarioWithLatencyRecovery(scenario, payload);
   if (flag !== "none") {
-    throw new Error(`${scenario.suspectId} voice quality failed: ${flag}`);
+    throw new Error(`${scenario.suspectId} voice quality failed: ${flag}: ${compactLine(result.response.answer_text)}`);
+  }
+  const currentLatencyFlag = latencyFlag(result.meta.latencyMs);
+  if (currentLatencyFlag === "hard-fail") {
+    throw new Error(`${scenario.suspectId} live latency exceeded hard boundary: ${result.meta.latencyMs} ms`);
   }
   rows.push({
+    locale: scenario.responseLocale || "en",
+    beatId: scenario.beatId || "repeat_regression",
     suspectId: scenario.suspectId,
     performanceRole: payload.npc.performanceRole,
     pressureState: payload.npc.pressureState,
     expectedBeat: scenario.expectedBeat,
     latencyMs: result.meta.latencyMs,
+    latencyFlag: currentLatencyFlag,
+    hardLatencyRetry,
+    latencyAttempts: attempts.map((attempt) => attempt.latencyMs),
     answer: compactLine(result.response.answer_text),
     notebookHint: compactLine(result.response.notebook_hint),
     genericFlag: flag
@@ -275,19 +440,30 @@ const uniqueAnswers = new Set(rows.map((row) => row.answer.slice(0, 42).toLowerC
 if (uniqueAnswers.size !== rows.length) {
   throw new Error("Live suspect voices are too similar at the opening phrase level.");
 }
+if (voiceDistance(rows) !== rows.length) {
+  throw new Error("Live suspect voices are too similar across role/detail signatures.");
+}
 
 const markdown = [
-  "# AI Suspect Voice Run - 2026-05-06",
+  `# AI Suspect Voice Run - ${RUN_DATE}`,
   "",
-  "Scope: live Groq check for all four Liarline suspects after T051-T060 hardening.",
+  "Scope: current live Groq check for all four Liarline suspects after voice-quality hardening, RU/EN transcript audit, repeat-answer quarantine, and latency boundary.",
   "",
-  "| Suspect | Performance role | Pressure | Expected beat | Latency | Generic flag | Answer | Notebook hint |",
-  "|---|---|---|---|---:|---|---|---|",
+  "| Locale | Beat | Suspect | Performance role | Pressure | Expected beat | Latency | Latency flag | Hard latency retry | Generic flag | Answer | Notebook hint |",
+  "|---|---|---|---|---|---|---:|---|---|---|---|---|",
   ...rows.map((row) =>
-    `| ${row.suspectId} | ${row.performanceRole} | ${row.pressureState} | ${row.expectedBeat} | ${row.latencyMs} ms | ${row.genericFlag} | ${row.answer.replaceAll("|", "/")} | ${row.notebookHint.replaceAll("|", "/")} |`
+    `| ${row.locale} | ${row.beatId} | ${row.suspectId} | ${row.performanceRole} | ${row.pressureState} | ${row.expectedBeat} | ${row.latencyMs} ms | ${row.latencyFlag} | ${row.hardLatencyRetry ? `yes (${row.latencyAttempts.join(" -> ")} ms)` : "no"} | ${row.genericFlag} | ${row.answer.replaceAll("|", "/")} | ${row.notebookHint.replaceAll("|", "/")} |`
   ),
   "",
-  "Result: all four suspects returned live Groq answers, stayed under the compact-answer budget, avoided internal markers, and had distinct opening phrasing.",
+  "## Latency boundary",
+  "",
+  `Target: ${latencyBoundary.targetMs} ms. Warning: ${latencyBoundary.warningMs} ms. Problem: ${latencyBoundary.problemMs} ms. Hard fail: ${latencyBoundary.hardFailMs} ms.`,
+  "",
+  "## Manual review checklist",
+  "",
+  ...AI_MANUAL_REVIEW_CHECKLIST.map((item) => `- ${item.checkId}: pass=${item.passSignal}; fail=${item.failSignal}`),
+  "",
+  "Result: all four suspects returned live Groq answers in both locales, stayed under the compact-answer budget, avoided internal markers, and had distinct opening phrasing.",
   ""
 ].join("\n");
 

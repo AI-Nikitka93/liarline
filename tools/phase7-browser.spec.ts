@@ -35,6 +35,12 @@ async function forceEnglish(page: any) {
   });
 }
 
+async function chooseEnglishIfNeeded(page: any) {
+  if (await page.locator(".language-entry-screen").isVisible()) {
+    await page.getByRole("button", { name: "English", exact: false }).click();
+  }
+}
+
 test("phase 7 happy path reaches contradiction, accusation, and sharp resolution", async ({ page }) => {
   const browserErrors: string[] = [];
   page.on("console", (message) => {
@@ -86,6 +92,7 @@ test("phase 7 happy path reaches contradiction, accusation, and sharp resolution
   await forceEnglish(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await chooseEnglishIfNeeded(page);
   await page.locator(".first-question-cta").click();
   await expect(page.locator(".contradiction-reveal-stage")).toBeVisible();
   await expect(page.locator(".persona-shift-card")).toBeVisible();
@@ -117,7 +124,7 @@ test("phase 7 happy path reaches contradiction, accusation, and sharp resolution
   expect(browserErrors).toEqual([]);
 });
 
-test("phase 7 fallback path stays playable and visibly degraded", async ({ page }) => {
+test("phase 7 fallback path stays visible without creating gameplay progress", async ({ page }) => {
   await forceEnglish(page);
   await page.route("**/api/npc-turn", async (route) => {
     await route.fulfill({
@@ -128,9 +135,12 @@ test("phase 7 fallback path stays playable and visibly degraded", async ({ page 
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await chooseEnglishIfNeeded(page);
   await page.locator(".first-question-cta").click();
-  await expect(page.getByText("Guarded answer", { exact: true })).toBeVisible();
-  await expect(page.getByText("Guarded pause", { exact: true })).toBeVisible();
+  await expect(page.getByText("The witness stalls. No progress was applied.", { exact: true })).toBeVisible();
+  await expect(page.locator(".ai-answer-badges")).toContainText("Guarded answer");
+  await expect(page.locator(".witness-status-strip")).toContainText("Guarded answer");
+  await expect(page.locator(".transcript-turn")).toHaveCount(1);
   await expect(page.locator(".accusation-entry-button")).toBeDisabled();
   await expect(page.locator("text=AP 9/9")).toBeVisible();
 });
@@ -155,6 +165,7 @@ test("phase 7 restart ignores stale AI response from the previous run", async ({
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await chooseEnglishIfNeeded(page);
   await page.locator(".first-question-cta").click();
   await expect(page.locator(".thinking-scan")).toBeVisible();
   await page.getByRole("button", { name: "Restart", exact: true }).click({ timeout: 1000 });

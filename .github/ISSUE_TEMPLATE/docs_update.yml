@@ -1,0 +1,32 @@
+name: Docs or claim update
+description: Fix README, Devpost copy, release notes, architecture docs, or public claim accuracy.
+title: "Docs: "
+labels: ["documentation"]
+body:
+  - type: textarea
+    id: location
+    attributes:
+      label: Location
+      description: Link or name the file/section that needs a change.
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What is inaccurate, stale, or unclear?
+    validations:
+      required: true
+  - type: textarea
+    id: suggested
+    attributes:
+      label: Suggested wording
+      description: Paste exact wording if you have it.
+    validations:
+      required: false
+  - type: checkboxes
+    id: claim_guardrail
+    attributes:
+      label: Claim guardrail
+      options:
+        - label: The suggested wording does not claim unimplemented multiplayer, voice/video interrogation, accounts, unlimited generated cases, or a playable multi-case season.
+          required: true

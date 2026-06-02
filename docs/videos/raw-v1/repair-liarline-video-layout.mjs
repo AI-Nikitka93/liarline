@@ -9,6 +9,9 @@ const RAW_DIR = path.join(OUT_DIR, "raw-v1");
 const SLIDE_DIR = path.join(OUT_DIR, "slides", "layout-fix-v1");
 const CAPTION_DIR = path.join(OUT_DIR, "captions");
 const FRAME = { width: 780, height: 1688 };
+const STATE_DOC = existsSync(path.join(ROOT, "docs", "STATE.md")) ? execFileSync(process.execPath, ["-e", `process.stdout.write(require('fs').readFileSync(${JSON.stringify(path.join(ROOT, "docs", "STATE.md"))}, 'utf8'))`], { encoding: "utf8" }) : "";
+const PRODUCTION_DEPLOY_ID = process.env.LIARLINE_PRODUCTION_DEPLOY_ID || STATE_DOC.match(/production deploy `(dpl_[^`]+)`/)?.[1] || "";
+const RECORDED_PUBLIC_URL = process.env.LIARLINE_BASE_URL || "https://liarline.vercel.app/";
 
 mkdirSync(SLIDE_DIR, { recursive: true });
 mkdirSync(CAPTION_DIR, { recursive: true });
@@ -90,6 +93,11 @@ function duration(file) {
   return Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", file], { encoding: "utf8" }).trim());
 }
 
+function hasAudio(file) {
+  const output = execFileSync("ffprobe", ["-v", "error", "-select_streams", "a", "-show_entries", "stream=codec_type", "-of", "csv=p=0", file], { encoding: "utf8" }).trim();
+  return output.length > 0;
+}
+
 function fileInfo(file) {
   return { path: file, bytes: statSync(file).size };
 }
@@ -117,6 +125,7 @@ function repairVideo(lang) {
   const manifestPath = path.join(OUT_DIR, `liarline-demo-${lang}-v1-manifest.json`);
   const manifest = JSON.parse(awaitRead(manifestPath));
   const video = path.join(OUT_DIR, `liarline-demo-${lang}-v1.mp4`);
+  const reusedVoiceover = muxExistingVoiceover(lang, video);
   const total = duration(video);
   const events = manifest.timeline;
   const problemStart = events[1].start;
@@ -163,16 +172,30 @@ function repairVideo(lang) {
   run("ffmpeg", ["-y", "-i", video, "-vf", "fps=1/10,scale=260:-1,tile=3x3:padding=10:margin=10:color=black", "-frames:v", "1", contact]);
 
   const labels = ["hook", "briefing", "first-ai-answer", "ivo-pressure", "notebook-proof", "resolution"];
-  copy[lang].extractTimes.forEach((time, index) => {
+  const extractTimes = [
+    1,
+    events[2].start + 0.6,
+    events[3].start + 2.0,
+    events[5].start + 1.5,
+    events[7].start + 1.5,
+    events[9].start + 1.2
+  ];
+  extractTimes.forEach((time, index) => {
     const out = path.join(OUT_DIR, `liarline-demo-${lang}-v1-keyframe-${String(index + 1).padStart(2, "0")}.png`);
     run("ffmpeg", ["-y", "-ss", String(time), "-i", video, "-frames:v", "1", "-q:v", "2", out]);
-    manifest.keyframes[index] = { file: out, label: labels[index] };
+    manifest.keyframes[index] = { file: out, label: labels[index], timeSeconds: Number(time.toFixed(3)) };
   });
 
   const captionPath = moveCaptions(lang);
   manifest.updatedAt = new Date().toISOString();
+  manifest.productionDeployId = manifest.productionDeployId || PRODUCTION_DEPLOY_ID;
+  manifest.recordedAgainstPublicUrl = manifest.recordedAgainstPublicUrl || RECORDED_PUBLIC_URL;
   manifest.verification = {
     ...manifest.verification,
+    productionDeployId: manifest.verification.productionDeployId || PRODUCTION_DEPLOY_ID,
+    recordedAgainstPublicUrl: manifest.verification.recordedAgainstPublicUrl || RECORDED_PUBLIC_URL,
+    voiceover: reusedVoiceover ? "reused_existing_omnivoice_voiceover" : manifest.verification.voiceover,
+    audioStreamPresent: hasAudio(video),
     titleCardLayoutFixed: true,
     captionSrtMovedToAvoidPlayerAutoLoad: true,
     durationSeconds: Number(duration(video).toFixed(3))
@@ -213,6 +236,53 @@ function repairVideo(lang) {
   };
 }
 
+function muxExistingVoiceover(lang, video) {
+  if (hasAudio(video)) return false;
+  const voiceover = path.join(OUT_DIR, `liarline-demo-${lang}-v1-voiceover.wav`);
+  if (!existsSync(voiceover)) {
+    throw new Error(`Cannot repair ${lang} demo video: MP4 has no audio and ${voiceover} is missing.`);
+  }
+
+  const videoDuration = duration(video);
+  const audioDuration = duration(voiceover);
+  const pad = Math.max(0, audioDuration - videoDuration);
+  const voiced = path.join(OUT_DIR, `liarline-demo-${lang}-v1-existing-voiceover.mp4`);
+  const args = ["-y", "-i", video, "-i", voiceover];
+  if (pad > 0.05) {
+    args.push(
+      "-filter_complex",
+      `[0:v]tpad=stop_mode=clone:stop_duration=${pad.toFixed(3)}[v]`,
+      "-map",
+      "[v]"
+    );
+  } else {
+    args.push("-map", "0:v:0");
+  }
+  args.push(
+    "-map",
+    "1:a:0",
+    "-c:v",
+    "libx264",
+    "-pix_fmt",
+    "yuv420p",
+    "-crf",
+    "23",
+    "-preset",
+    "medium",
+    "-c:a",
+    "aac",
+    "-b:a",
+    "160k",
+    "-shortest",
+    "-movflags",
+    "+faststart",
+    voiced
+  );
+  run("ffmpeg", args);
+  renameSync(voiced, video);
+  return true;
+}
+
 function awaitRead(file) {
   return execFileSync(process.execPath, ["-e", `process.stdout.write(require('fs').readFileSync(${JSON.stringify(file)}, 'utf8'))`], { encoding: "utf8" });
 }
@@ -227,6 +297,8 @@ const packages = [repairVideo("ru"), repairVideo("en")];
 const bilingualPath = path.join(OUT_DIR, "liarline-demo-bilingual-v1-manifest.json");
 const bilingual = JSON.parse(awaitRead(bilingualPath));
 bilingual.updatedAt = new Date().toISOString();
+bilingual.productionDeployId = bilingual.productionDeployId || PRODUCTION_DEPLOY_ID;
+bilingual.recordedAgainstPublicUrl = bilingual.recordedAgainstPublicUrl || RECORDED_PUBLIC_URL;
 bilingual.packages = packages;
 bilingual.layoutRepair = {
   status: "applied",

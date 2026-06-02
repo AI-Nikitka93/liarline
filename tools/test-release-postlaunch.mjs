@@ -31,7 +31,7 @@ import {
 
 const releaseDoc = await readFile("docs/RELEASE.md", "utf8");
 const readme = await readFile("README.md", "utf8");
-const masterTodo = await readFile("_archive/agent-memory/docs/MASTER_TODO.md", "utf8");
+const activeMasterTodo = await readFile("docs/MASTER_TODO.md", "utf8");
 
 for (const bucket of ["fix_now", "follow_up", "future_scope"]) {
   assert.ok(HOTFIX_DECISION_MATRIX.some((item) => item.bucket === bucket), `hotfix matrix missing ${bucket}`);
@@ -147,39 +147,8 @@ for (const fragment of [
 
 assert.ok(readme.includes("npm run test:release-postlaunch"), "README missing post-launch check");
 
-for (const todoId of [
-  "T191",
-  "T192",
-  "T193",
-  "T194",
-  "T195",
-  "T196",
-  "T197",
-  "T198",
-  "T199",
-  "T200",
-  "T201",
-  "T202",
-  "T203",
-  "T204",
-  "T205",
-  "T206",
-  "T207",
-  "T208",
-  "T209",
-  "T210",
-  "T211",
-  "T212",
-  "T213",
-  "T214",
-  "T215",
-  "T216",
-  "T217",
-  "T218",
-  "T219",
-  "T220"
-]) {
-  assert.ok(masterTodo.includes(`[x] ${todoId}`), `${todoId} must be closed`);
-}
+assert.ok(activeMasterTodo.includes("[x] T010"), "active IDEA ANCHOR guardrail task must be closed");
+assert.ok(activeMasterTodo.includes("do not drift into"), "active master TODO must preserve no-drift guardrails");
+assert.ok(activeMasterTodo.includes("total ordinary tasks: 188"), "active master TODO must preserve coverage count");
 
 console.log("release postlaunch passed");

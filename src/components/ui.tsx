@@ -2,6 +2,8 @@ import { clsx } from "clsx";
 import { RotateCcw } from "lucide-react";
 import Image from "next/image";
 import { getSuspectPortrait } from "../game/assets";
+import { BUTTON_ROLE_SYSTEM } from "../game/interactionVisualSystem";
+import { getMoodVisual } from "../game/moodVisualSystem";
 import type { GameState, Suspect } from "../game/types";
 import type { Locale } from "../i18n/dictionaries";
 import { getDictionary, localizeSuspect } from "../i18n/dictionaries";
@@ -46,7 +48,7 @@ export function TopStrip({
             <button
               type="button"
               onClick={onRestart}
-              className="inline-flex min-h-11 items-center gap-1 rounded-liarline border border-line-700 bg-ink-850 px-2 font-mono text-[10px] font-bold uppercase text-text-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              className={`inline-flex min-h-11 items-center gap-1 rounded-liarline border border-line-700 bg-ink-850 px-2 font-mono text-[10px] font-bold uppercase text-text-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 ${BUTTON_ROLE_SYSTEM.restart.className}`}
               aria-label={dictionary.ui.restartGame}
               title={dictionary.ui.restartGame}
             >
@@ -107,6 +109,7 @@ export function NpcMoodFrame({ suspect, locale, active, onClick }: { suspect: Su
   const dictionary = getDictionary(locale);
   const mood = localizedSuspect.visibleState.mood;
   const portrait = getSuspectPortrait(localizedSuspect.suspectId);
+  const moodVisual = getMoodVisual(mood);
   const moodClass = mood.includes("panicking")
     ? "border-signal-500 shadow-signal"
     : mood.includes("angry")
@@ -120,13 +123,14 @@ export function NpcMoodFrame({ suspect, locale, active, onClick }: { suspect: Su
   const className = clsx(
         "min-h-24 rounded-liarline border bg-ink-850 p-3 text-left transition focus:outline-none focus:ring-2 focus:ring-cyan-400",
         moodClass,
+        moodVisual.className,
         active && "bg-ink-800",
         mood.includes("panicking") && "persona-pulse"
       );
   const content = (
     <>
       <div className="flex items-start gap-3">
-        <div className="portrait-anchor relative h-14 w-14 shrink-0 overflow-hidden rounded border border-line-500 bg-ink-900">
+        <div className="portrait-anchor relative h-14 w-14 shrink-0 overflow-hidden rounded border border-line-500 bg-ink-900" style={{ position: "relative" }}>
           {portrait ? (
             <Image
               src={portrait}

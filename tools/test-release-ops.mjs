@@ -12,7 +12,7 @@ import {
 } from "../src/release/releaseOps.ts";
 
 const releaseDoc = await readFile("docs/RELEASE.md", "utf8");
-const masterTodo = await readFile("_archive/agent-memory/docs/MASTER_TODO.md", "utf8");
+const activeMasterTodo = await readFile("docs/MASTER_TODO.md", "utf8");
 
 const requiredMetrics = ["start_reached", "first_ai_answer", "contradiction_reached", "accusation_submitted", "resolution_reached"];
 for (const eventName of requiredMetrics) {
@@ -90,8 +90,8 @@ for (const fragment of [
   assert.ok(releaseDoc.includes(fragment), `docs/RELEASE.md missing ${fragment}`);
 }
 
-for (const todoId of ["T181", "T182", "T183", "T184", "T185", "T186", "T187", "T188", "T189", "T190"]) {
-  assert.ok(masterTodo.includes(`[x] ${todoId}`), `${todoId} must be closed`);
-}
+assert.ok(activeMasterTodo.includes("docs/MASTER_TODO.md` становится живым мастер-планом"));
+assert.ok(activeMasterTodo.includes("[x] T002"), "active source-of-truth task must be closed");
+assert.ok(activeMasterTodo.includes("[x] T003"), "archived-ledger separation task must be closed");
 
 console.log("release ops passed");

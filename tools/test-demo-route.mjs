@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { promisify } from "node:util";
+import { loadLocalEnv as loadLocalEnvFile } from "./load-local-env.mjs";
 import { handleNpcTurnPayload } from "../src/api/npc-turn.ts";
 import { applyNpcTurnResult, buildNpcTurnRequest, createInitialGameState, getSuggestedQuestions } from "../src/game/gameEngine.ts";
 import { FIRST_INTERROGATION_SUSPECT_ID } from "../src/game/seedCase.ts";
@@ -33,18 +34,21 @@ function parseEnv(raw) {
 }
 
 async function loadLocalEnv() {
-  if (!existsSync(ENV_PATH)) return;
-  const parsed = parseEnv(await readFile(ENV_PATH, "utf8"));
-  for (const [key, value] of Object.entries(parsed)) {
-    if (!(key in process.env)) process.env[key] = value;
-  }
+  loadLocalEnvFile(ENV_PATH);
 }
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function requestLive(payload, attempts = 3) {
+function retryDelayMs(result, attempt) {
+  const retryAfterSeconds = Number.parseInt(result?.meta?.retryAfter || "", 10);
+  if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) return retryAfterSeconds * 1000;
+  if (result?.meta?.fallbackReason === "rate_limit") return Math.min(20000 * attempt, 60000);
+  return 1000 * attempt;
+}
+
+async function requestLive(payload, attempts = 5) {
   const failures = [];
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     let result = await requestThroughLocalApi(payload);
@@ -57,7 +61,7 @@ async function requestLive(payload, attempts = 3) {
     }
     if (result.source === "groq") return result;
     failures.push(result.meta.fallbackReason || "unknown");
-    if (attempt < attempts) await delay(1000 * attempt);
+    if (attempt < attempts) await delay(retryDelayMs(result, attempt));
   }
   throw new Error(`Demo route requires live Groq. Failed after ${attempts} attempts: ${failures.join(", ")}`);
 }
@@ -100,9 +104,14 @@ async function powershellFetch(url, init = {}) {
   const dir = await mkdtemp(path.join(tmpdir(), "liarline-demo-groq-"));
   const bodyPath = path.join(dir, "body.json");
   await writeFile(bodyPath, typeof init.body === "string" ? init.body : "", "utf8");
+  const authorization =
+    init.headers?.authorization ||
+    init.headers?.Authorization ||
+    (typeof init.headers?.get === "function" ? init.headers.get("authorization") : "") ||
+    `Bearer ${process.env.GROQ_API_KEY || ""}`;
   const script = [
     "$ErrorActionPreference = 'Stop'",
-    "$headers = @{ Authorization = \"Bearer $env:GROQ_API_KEY\" }",
+    "$headers = @{ Authorization = $env:LIARLINE_GROQ_AUTH }",
     "$body = Get-Content -Raw -LiteralPath $env:LIARLINE_GROQ_BODY",
     "try {",
     "  $response = Invoke-RestMethod -Uri $env:LIARLINE_GROQ_URL -Method Post -Headers $headers -ContentType 'application/json' -Body $body -TimeoutSec 75",
@@ -125,6 +134,7 @@ async function powershellFetch(url, init = {}) {
     const { stdout } = await execFileAsync("powershell", ["-NoProfile", "-Command", script], {
       env: {
         ...process.env,
+        LIARLINE_GROQ_AUTH: authorization,
         LIARLINE_GROQ_BODY: bodyPath,
         LIARLINE_GROQ_URL: url
       },
@@ -175,8 +185,8 @@ function compact(text) {
 
 await loadLocalEnv();
 
-if (!process.env.GROQ_API_KEY) {
-  throw new Error("GROQ_API_KEY is required for the live demo-route check.");
+if (!process.env.GROQ_API_KEY && !process.env.GROQ_API_KEYS && !Object.keys(process.env).some((key) => /^GROQ_API_KEY_\d+$/.test(key))) {
+  throw new Error("GROQ_API_KEY, GROQ_API_KEYS, or GROQ_API_KEY_1...GROQ_API_KEY_N is required for the live demo-route check.");
 }
 
 const openingState = {

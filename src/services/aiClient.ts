@@ -1,4 +1,7 @@
 import type { NpcTurnRequest, NpcTurnResponse, NpcTurnResult } from "../ai/contracts.ts";
+import { AI_LATENCY_BOUNDARY } from "../release/winPushPhase2Quarantine";
+
+export const CLIENT_AI_RESPONSE_TIMEOUT_MS = AI_LATENCY_BOUNDARY.problemMs;
 
 const FALLBACK_ANSWERS: Record<string, string[]> = {
   protective_liar: [
@@ -38,15 +41,16 @@ const FALLBACK_ANSWERS_RU: Record<string, string[]> = {
   ]
 };
 
-export async function requestNpcTurn(payload: NpcTurnRequest, signal?: AbortSignal): Promise<NpcTurnResult> {
+export async function requestNpcTurn(payload: NpcTurnRequest, signal?: AbortSignal, fetchImpl: typeof fetch = fetch): Promise<NpcTurnResult> {
   const startedAt = Date.now();
+  const requestSignal = createClientTimeoutSignal(signal);
   try {
-    const response = await fetch("/api/npc-turn", {
+    const response = await fetchImpl("/api/npc-turn", {
       method: "POST",
       headers: {
         "content-type": "application/json"
       },
-      signal,
+      signal: requestSignal.signal,
       body: JSON.stringify(payload)
     });
     const body = (await response.json()) as unknown;
@@ -55,8 +59,41 @@ export async function requestNpcTurn(payload: NpcTurnRequest, signal?: AbortSign
     }
     return body;
   } catch {
-    return buildClientFallback(payload, "network_error", Date.now() - startedAt);
+    return buildClientFallback(payload, requestSignal.timedOut ? "timeout" : "network_error", Date.now() - startedAt);
+  } finally {
+    requestSignal.clear();
   }
+}
+
+function createClientTimeoutSignal(externalSignal?: AbortSignal): {
+  signal: AbortSignal;
+  timedOut: boolean;
+  clear: () => void;
+} {
+  const controller = new AbortController();
+  const state = { timedOut: false };
+  const timeoutId = globalThis.setTimeout(() => {
+    state.timedOut = true;
+    controller.abort();
+  }, CLIENT_AI_RESPONSE_TIMEOUT_MS);
+  const abortFromExternal = () => controller.abort();
+
+  if (externalSignal?.aborted) {
+    abortFromExternal();
+  } else {
+    externalSignal?.addEventListener("abort", abortFromExternal, { once: true });
+  }
+
+  return {
+    signal: controller.signal,
+    get timedOut() {
+      return state.timedOut;
+    },
+    clear: () => {
+      globalThis.clearTimeout(timeoutId);
+      externalSignal?.removeEventListener("abort", abortFromExternal);
+    }
+  };
 }
 
 function buildClientFallback(payload: NpcTurnRequest, reason: string, latencyMs: number): NpcTurnResult {
@@ -84,7 +121,7 @@ function buildFallbackResponse(payload: NpcTurnRequest, reason: string): NpcTurn
   return {
     answer_text: bank[index],
     truthfulness: "evasive",
-    suspicion_delta: reason === "network_error" ? 0 : 1,
+    suspicion_delta: 0,
     revealed_clue_id: null,
     contradiction_risk: 10,
     npc_mood: payload.npc.mood || "guarded",

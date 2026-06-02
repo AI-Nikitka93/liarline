@@ -14,6 +14,8 @@ import type { AccusationInput, DetectiveRating, GameState, Outcome, Suspect, Tra
 const SAVE_SCHEMA_VERSION = "1.0.5";
 const GUARANTEED_CONTRADICTION_ID = "contradiction_camera_vs_cart";
 const GUARANTEED_CAMERA_CLUE_ID = "clue_camera_fault";
+const GUARANTEED_IVO_GAP_CLUE_ID = "clue_ivo_gap";
+const GUARANTEED_IVO_DEBT_CLUE_ID = "clue_debt_message";
 const CART_PUBLIC_FACT_ID = "public_003";
 
 export function cloneGameState(state: GameState): GameState {
@@ -54,9 +56,11 @@ export function startInterrogation(state: GameState): GameState {
 }
 
 export function goToAccusation(state: GameState): GameState {
-  const minimumMet = state.transcript.length >= state.rules.minimumQuestionsBeforeAccusation;
+  const countedTranscriptForAccusation = state.transcript.filter((entry) => entry.source !== "fallback");
+  const minimumMet = countedTranscriptForAccusation.length >= state.rules.minimumQuestionsBeforeAccusation;
   const noActionPointsLeft = state.rules.actionPointsRemaining <= 0;
-  if (state.phase !== "interrogation" || (!minimumMet && !noActionPointsLeft)) return state;
+  const coreContradictionSeen = state.deduction.collapseTriggered;
+  if (state.phase !== "interrogation" || ((!minimumMet || !coreContradictionSeen) && !noActionPointsLeft)) return state;
   return touchState({
     ...state,
     phase: "accusation"
@@ -180,14 +184,14 @@ export function buildNpcTurnRequest(state: GameState, suspectId: string, questio
 function getNpcFacingClueText(clueId: string, publicText: string, suspectName: string, locale: Locale): string {
   const npcFacing: Record<Locale, Record<string, string>> = {
     en: {
-      clue_ivo_gap: "Pressure point: 21:10 inventory gap, cart timing, and my break-room claim.",
+      clue_ivo_gap: "At 21:10, I was still sorting inventory; the cart timing and break-room claim can look worse than they are.",
       clue_debt_message: "A message suggests I urgently needed money.",
       clue_mara_saw_prototype: "I saw the prototype after 21:05.",
       clue_camera_fault: "I damaged the corridor camera before the theft.",
       clue_lena_heard_cart: "I heard a cart roll toward the storage door."
     },
     ru: {
-      clue_ivo_gap: "Точка давления: 21:10, инвентарный провал, тележка и моя версия про комнату отдыха.",
+      clue_ivo_gap: "В 21:10 я всё ещё разбирал инвентарь; время тележки и комната отдыха выглядят хуже, чем есть.",
       clue_debt_message: "Сообщение показывает, что мне срочно нужны деньги.",
       clue_mara_saw_prototype: "Я видела прототип после 21:05.",
       clue_camera_fault: "Я повредил коридорную камеру до кражи.",
@@ -235,7 +239,7 @@ export function applyNpcTurnResult(
   const engineGuaranteedClueId =
     shouldGuaranteeFirstContradictionClue(state, suspectId, questionText) && allowedRevealedClueIds.has(GUARANTEED_CAMERA_CLUE_ID)
       ? GUARANTEED_CAMERA_CLUE_ID
-      : null;
+      : getDeterministicIvoClueUnlock(state, suspectId, questionText, allowedRevealedClueIds);
   const revealedClueId = isDegradedAiTurn ? null : modelRevealedClueId || engineGuaranteedClueId;
   const suspicionDelta = isDegradedAiTurn ? 0 : clamp(response.suspicion_delta, -2, 4);
   const newSuspicion = clamp(
@@ -263,7 +267,7 @@ export function applyNpcTurnResult(
     }
   }
 
-  if (response.notebook_hint.trim()) {
+  if (!isDegradedAiTurn && response.notebook_hint.trim()) {
     nextNotebook.suspectNotes = {
       ...nextNotebook.suspectNotes,
       [suspectId]: [...(nextNotebook.suspectNotes[suspectId] || []), response.notebook_hint.trim()].slice(-4)
@@ -273,8 +277,8 @@ export function applyNpcTurnResult(
   nextSuspect.visibleState = {
     ...nextSuspect.visibleState,
     suspicion: newSuspicion,
-    questionsAsked: nextSuspect.visibleState.questionsAsked + 1,
-    mood: response.npc_mood || nextSuspect.visibleState.mood
+    questionsAsked: isDegradedAiTurn ? nextSuspect.visibleState.questionsAsked : nextSuspect.visibleState.questionsAsked + 1,
+    mood: isDegradedAiTurn ? nextSuspect.visibleState.mood : response.npc_mood || nextSuspect.visibleState.mood
   };
   nextSuspects[suspectId] = nextSuspect;
 
@@ -303,7 +307,8 @@ export function applyNpcTurnResult(
 
   const nextTranscript = [...state.transcript, transcriptEntry];
   const actionPointsRemaining = isDegradedAiTurn ? state.rules.actionPointsRemaining : Math.max(0, state.rules.actionPointsRemaining - 1);
-  const roundIndex = Math.min(state.rules.maxRounds, Math.floor(nextTranscript.length / 3));
+  const countedTranscriptForRound = nextTranscript.filter((entry) => entry.source !== "fallback");
+  const roundIndex = isDegradedAiTurn ? state.rules.roundIndex : Math.min(state.rules.maxRounds, Math.floor(countedTranscriptForRound.length / 3));
   const shouldAccuse = actionPointsRemaining <= 0 || roundIndex >= state.rules.maxRounds;
 
   return touchState({
@@ -409,9 +414,11 @@ export function getSuggestedQuestions(state: GameState, suspectId: string, local
 }
 
 export function canGoToAccusation(state: GameState): boolean {
+  const countedTranscriptForAccusation = state.transcript.filter((entry) => entry.source !== "fallback");
   return (
     state.phase === "interrogation" &&
-    (state.transcript.length >= state.rules.minimumQuestionsBeforeAccusation || state.rules.actionPointsRemaining <= 0)
+    ((countedTranscriptForAccusation.length >= state.rules.minimumQuestionsBeforeAccusation && state.deduction.collapseTriggered) ||
+      state.rules.actionPointsRemaining <= 0)
   );
 }
 
@@ -456,10 +463,39 @@ function getPressureState(state: GameState, suspectId: string): "ordinary" | "ev
 function shouldGuaranteeFirstContradictionClue(state: GameState, suspectId: string, questionText: string): boolean {
   if (suspectId !== FIRST_INTERROGATION_SUSPECT_ID) return false;
   const suspect = state.suspects[suspectId];
-  if (!suspect || suspect.visibleState.questionsAsked > 0) return false;
+  if (!suspect) return false;
   if (state.clues[GUARANTEED_CAMERA_CLUE_ID]?.unlocked) return false;
   const normalized = questionText.toLowerCase();
   return normalized.includes("camera") || normalized.includes("камера");
+}
+
+function getDeterministicIvoClueUnlock(
+  state: GameState,
+  suspectId: string,
+  questionText: string,
+  allowedRevealedClueIds: Set<string>
+): string | null {
+  if (suspectId !== "suspect_ivo") return null;
+  const normalized = questionText.toLowerCase();
+  const asksAboutDebt = /debt|money|message|urgent|pressure|cash|owed|долг|деньг|сообщ|сроч|давлен/i.test(normalized);
+  if (
+    asksAboutDebt &&
+    !state.clues[GUARANTEED_IVO_DEBT_CLUE_ID]?.unlocked &&
+    allowedRevealedClueIds.has(GUARANTEED_IVO_DEBT_CLUE_ID)
+  ) {
+    return GUARANTEED_IVO_DEBT_CLUE_ID;
+  }
+
+  const asksAboutGap = /21:10|cart|inventory|minute|log|gap|тележ|инвентар|минут|журнал|провал/i.test(normalized);
+  if (
+    asksAboutGap &&
+    !state.clues[GUARANTEED_IVO_GAP_CLUE_ID]?.unlocked &&
+    allowedRevealedClueIds.has(GUARANTEED_IVO_GAP_CLUE_ID)
+  ) {
+    return GUARANTEED_IVO_GAP_CLUE_ID;
+  }
+
+  return null;
 }
 
 function shouldTriggerGuaranteedContradiction(
@@ -573,7 +609,7 @@ function getDetectiveRating(outcome: Outcome, state: GameState, evidenceScore: n
     return "sharp";
   }
   if (outcome === "perfect_win") return "careful";
-  if (outcome === "partial_win" || evidenceScore > 0) return "reckless";
+  if (outcome === "partial_win" && evidenceScore > 0) return "reckless";
   return "misled";
 }
 

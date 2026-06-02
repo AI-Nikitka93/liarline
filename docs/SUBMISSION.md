@@ -1,6 +1,6 @@
 # Liarline Devpost Submission Draft
 
-Verification date: 2026-05-06.
+Verification date: 2026-05-08.
 
 ## Short Description
 
@@ -22,9 +22,12 @@ The AI is an actor, not the judge. Groq `llama-3.1-8b-instant` generates compact
 
 The local game engine decides truth, evidence unlocks, suspicion changes, accusation outcome, rating, and resolution. AI output can make a suspect sound nervous, evasive, defensive, or panicked, but it cannot convict anyone by itself.
 
+AI actor quality gate: suspect answers are checked for role voice, concrete case detail, language consistency, no invented evidence, no repeated filler, and no final-accusation wording before they count as release-quality live AI.
+
 ## Playable Release Summary
 
 - Current release scope: one playable case.
+- Devpost/current copy must say one playable case, not a playable season.
 - Core loop: interrogate suspects, compare evidence, catch a contradiction, accuse with proof, see resolution.
 - Main hook: AI suspects can lie, but only evidence can convict.
 - Future direction: a larger season can exist later, but it is not claimed as playable in this submission.
@@ -77,12 +80,24 @@ Do not claim yet:
 - Unlimited case generation.
 - Multiplayer.
 
+This release does not include multiplayer, voice/video interrogation, accounts, unlimited generated cases, a full trial system, or a playable multi-case season.
+
 ## Judging Alignment
 
 - AI Integration: AI answers are part of the interrogation loop, while deterministic validation prevents hallucinations from deciding the case.
 - Creativity & Fun: the core fantasy is catching a lying AI suspect with evidence.
 - Technical Execution: client-side state, server-side AI proxy, schema validation, fallback handling, and repeatable demo route.
 - Mobile Support: mobile-first layout, safe-area handling, touch-sized actions, compact chat, and keyboard-aware interrogation controls.
+
+## Current Score-Risk Guardrail
+
+- Highest scoring risk: live AI answers that sound generic, leak state, or miss the first-minute pressure beat.
+- Mobile risk: sticky actions, keyboard inset, and long RU/EN labels must remain usable on phone-width screens.
+- Proof risk: the demo must make camera-vs-cart evidence visible before accusation.
+- Submission risk: strict Devpost readiness is incomplete until the public demo video URL exists.
+- Scope risk: this submission stays one polished case; no season, full trial, multiplayer, voice, or procedural case generation is claimed as playable.
+- Strict external blocker: the local package is usable now, but complete Devpost readiness still requires public game URL, GitHub URL, and demo video URL in `LIARLINE_STRICT_SUBMISSION=1 npm run test:judge-readiness`.
+- Backup AI boundary: no backup provider is claimed as production live fallback until it passes the same NPC-turn, live-suspect, demo-route, security, and browser gates as Groq.
 
 ## Required Pre-Submit Checklist
 
@@ -92,3 +107,10 @@ Do not claim yet:
 - Live AI path works with `GROQ_API_KEY`.
 - Fallback path remains playable without exposing internal errors.
 - Public copy does not overpromise future scope.
+- `npm run test:win-push-phase1` passes after any contest, source-of-truth, AI-practice, score-risk, or anchor wording change.
+- `npm run test:win-push-phase1-readiness` passes after any public-claim, provider, backup, dependency, skill-stack, codebase-intelligence, or risk-baseline change.
+- `npm run test:win-push-phase2-ai-quality` passes after any NPC prompt, validation, suspect voice, judge-route AI beat, or actor-not-judge change.
+- `npm run test:win-push-phase2-quarantine` passes after any AI answer quarantine, playable-anchor, fallback-impact, transcript-audit, or latency-boundary change.
+- AI answer quarantine gate: generic filler, internal control leaks, invented evidence, repeated live answers, fallback side effects, bilingual transcript quality, and live latency are executable release checks, not manual claims.
+- `npm run test:win-push-phase3-provider-proof` passes after any backup-provider, secret-safe test matrix, proof-chain, accusation, rating, outcome, or motive-localization change.
+- Groq performs suspect dialogue, but the deterministic engine owns truth, clues, accusation scoring, detective rating, and win/loss.
