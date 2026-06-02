@@ -16,8 +16,8 @@ const [
   contest,
   provider,
   submission,
-  acceptance,
-  playtest,
+  release,
+  playstyleGate,
   demoRoute,
   activeTodo
 ] = await Promise.all([
@@ -25,8 +25,8 @@ const [
   text("docs/CONTEST_REQUIREMENTS_2026-05-06.md"),
   text("docs/AI_PROVIDER_STATUS_CURRENT.md"),
   text("docs/SUBMISSION.md"),
-  text("_archive/agent-memory/docs/RELEASE_ACCEPTANCE_CHECKLIST_2026-05-06.md"),
-  text("_archive/agent-memory/docs/PLAYTEST_STYLES_2026-05-06.md"),
+  text("docs/RELEASE.md"),
+  text("tools/test-playstyles.mjs"),
   text("tools/test-demo-route.mjs"),
   text("docs/MASTER_TODO.md")
 ]);
@@ -73,25 +73,22 @@ includesAll(submission, [
   "Do not claim yet"
 ], "submission");
 
-includesAll(acceptance, [
-  "Closed scope: T152.",
-  "Game release-pass",
-  "AI release-pass",
-  "UI release-pass",
-  "Mobile release-pass",
-  "Localization release-pass",
-  "Fallback release-pass",
-  "No-go blockers",
-  "npm run build"
-], "acceptance");
+includesAll(release, [
+  "Judge readiness",
+  "Current risk baseline",
+  "npm run build",
+  "npm run test:judge-readiness",
+  "npm run test:demo-video-package",
+  "Consciously excluded future scope",
+  "Fallback"
+], "release");
 
-includesAll(playtest, [
-  "Closed scope: T151.",
+includesAll(playstyleGate, [
   "Rushed Player",
   "Careful Player",
   "Mistaken Player",
   "AI suspects can lie, but only evidence can convict"
-], "playtest");
+], "playstyle gate");
 
 includesAll(demoRoute, [
   "first answer",

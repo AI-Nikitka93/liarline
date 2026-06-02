@@ -7,6 +7,7 @@ const workflowPath = ".github/workflows/release-readiness.yml";
 assert.ok(existsSync(workflowPath), "release readiness GitHub Actions workflow must exist");
 
 const workflow = await readFile(workflowPath, "utf8");
+const releaseReadiness = await readFile("tools/test-release-readiness.mjs", "utf8");
 const packageJson = JSON.parse(await readFile("package.json", "utf8"));
 const scripts = packageJson.scripts || {};
 
@@ -44,5 +45,10 @@ for (const forbidden of [
 ]) {
   assert.ok(!workflow.includes(forbidden), `release readiness workflow must not require external secret/live-only gate: ${forbidden}`);
 }
+
+assert.ok(
+  !releaseReadiness.includes("_archive/"),
+  "release readiness CI must not depend on local-only _archive files"
+);
 
 console.log("CI workflow checks passed");
