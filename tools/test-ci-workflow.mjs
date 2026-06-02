@@ -20,7 +20,7 @@ for (const fragment of [
   "actions/setup-node@v4",
   "node-version: 24",
   "npm ci",
-  "npx playwright install --with-deps chromium",
+  "npx playwright install chromium",
   "npm run build",
   "npm run test:release-readiness",
   "npm run test:contest-final-packet",
@@ -39,6 +39,7 @@ for (const forbidden of [
   "GROQ_API_KEY:",
   "GROQ_API_KEYS:",
   "LIARLINE_DEMO_VIDEO_URL:",
+  "npx playwright install --with-deps",
   "npm run test:live-suspects"
 ]) {
   assert.ok(!workflow.includes(forbidden), `release readiness workflow must not require external secret/live-only gate: ${forbidden}`);
