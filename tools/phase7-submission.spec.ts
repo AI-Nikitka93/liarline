@@ -32,7 +32,7 @@ test("resolution captures lightweight player feedback without console errors", a
     window.localStorage.setItem("liarline.save.v1", JSON.stringify(seededState));
     window.localStorage.removeItem("liarline.feedback.v1");
   }, state);
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
 
   await expect(page.locator(".resolution-complete-screen")).toBeVisible();
   await expect(page.getByText("PARTIAL TRUTH", { exact: false })).toBeVisible();
