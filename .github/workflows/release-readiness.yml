@@ -26,6 +26,11 @@ jobs:
           node-version: 24
           cache: npm
 
+      - name: Install FFmpeg probe tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ffmpeg
+
       - name: Install dependencies
         run: npm ci
 

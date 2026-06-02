@@ -22,6 +22,7 @@ for (const fragment of [
   "actions/setup-node@v4",
   "git config --global --add safe.directory \"$GITHUB_WORKSPACE\"",
   "node-version: 24",
+  "apt-get install -y --no-install-recommends ffmpeg",
   "npm ci",
   "npm run build",
   "npm run test:release-readiness",
