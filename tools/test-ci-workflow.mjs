@@ -17,10 +17,10 @@ for (const fragment of [
   "pull_request:",
   "push:",
   "branches: [master, codex/restore-point-2026-05-08-ai-game-week]",
+  "container: mcr.microsoft.com/playwright:v1.59.1-noble",
   "actions/setup-node@v4",
   "node-version: 24",
   "npm ci",
-  "npx playwright install chromium",
   "npm run build",
   "npm run test:release-readiness",
   "npm run test:contest-final-packet",
@@ -39,7 +39,7 @@ for (const forbidden of [
   "GROQ_API_KEY:",
   "GROQ_API_KEYS:",
   "LIARLINE_DEMO_VIDEO_URL:",
-  "npx playwright install --with-deps",
+  "npx playwright install",
   "npm run test:live-suspects"
 ]) {
   assert.ok(!workflow.includes(forbidden), `release readiness workflow must not require external secret/live-only gate: ${forbidden}`);
