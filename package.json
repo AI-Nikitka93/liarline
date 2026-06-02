@@ -20,6 +20,7 @@
     "test:phase7-polish": "tsx tools/test-phase7-polish.mjs",
     "test:playstyles": "tsx tools/test-playstyles.mjs",
     "test:release-readiness": "node tools/test-release-readiness.mjs",
+    "test:ci-workflow": "node tools/test-ci-workflow.mjs",
     "test:release-security": "node tools/test-release-security.mjs",
     "test:public-docs": "node tools/test-public-docs-safe.mjs",
     "test:project-hygiene": "node tools/test-project-hygiene.mjs",
