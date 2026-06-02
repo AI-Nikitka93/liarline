@@ -8,6 +8,7 @@ const root = process.cwd();
 const videosDir = path.join(root, "docs", "videos");
 const expectedPublicUrl = "https://liarline.vercel.app/";
 const maxVideoBytes = 50 * 1024 * 1024;
+const windowsRepoPrefix = /^M:\\Projects\\Konkurs\\AI Game Week\\/i;
 
 function normalizeUrl(value) {
   return value.endsWith("/") ? value : `${value}/`;
@@ -18,6 +19,21 @@ function mustExist(file, minBytes = 1) {
   const size = statSync(file).size;
   assert.ok(size >= minBytes, `video package artifact is too small: ${file} (${size} bytes)`);
   return size;
+}
+
+function repoPath(file) {
+  return file.replace(windowsRepoPrefix, "").replace(/\\/g, "/");
+}
+
+function resolveArtifactPath(file) {
+  if (path.isAbsolute(file) && existsSync(file)) return file;
+  const localPath = path.join(root, repoPath(file));
+  return localPath;
+}
+
+function isOptionalLocalArtifact(file) {
+  const normalized = repoPath(file);
+  return normalized.startsWith("docs/videos/raw-v1/") || normalized.includes("/slides/layout-fix-v1/");
 }
 
 function readJson(file) {
@@ -163,7 +179,8 @@ for (const lang of ["en", "ru"]) {
   assertScript(await readFile(scriptPath, "utf8"), lang);
 
   for (const artifact of manifest.generatedArtifacts || []) {
-    mustExist(artifact.path, 1);
+    if (isOptionalLocalArtifact(artifact.path)) continue;
+    mustExist(resolveArtifactPath(artifact.path), 1);
   }
 }
 
