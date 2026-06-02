@@ -20,6 +20,7 @@ for (const fragment of [
   "branches: [master, codex/restore-point-2026-05-08-ai-game-week]",
   "container: mcr.microsoft.com/playwright:v1.59.1-noble",
   "actions/setup-node@v4",
+  "git config --global --add safe.directory \"$GITHUB_WORKSPACE\"",
   "node-version: 24",
   "npm ci",
   "npm run build",
