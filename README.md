@@ -1,31 +1,40 @@
 # Liarline
 
-Liarline is a mobile-browser AI detective game built for Devpost AI Game Week.
+AI suspects can lie. Only evidence can convict.
 
-The hook is simple: AI suspects can lie, but only evidence can convict. The language model performs suspect dialogue, while the deterministic game engine keeps the hidden truth table, clue unlocks, accusation result, and win/loss logic under local control.
+Liarline is a mobile-browser social deduction detective game built for Devpost AI Game Week. The AI performs suspect dialogue, while a deterministic game engine keeps the culprit, motive, clue unlocks, accusation result, and win/loss logic under local control.
 
-Playable release: https://liarline.vercel.app
+[Playable release](https://liarline.vercel.app) · [Devpost draft](docs/SUBMISSION.md) · [Architecture](docs/GAME_ARCHITECTURE.md) · [Final judge packet](docs/JUDGE_FINAL_PACKET_2026-05-08.md)
 
-## Current Playable Scope
+![Liarline social preview](docs/assets/liarline-social-preview.jpg)
 
-- One polished detective case.
-- Four suspects with different pressure behavior.
-- Mobile-first interrogation UI.
-- Live AI suspect answers through a server-side Groq proxy.
-- Deterministic clue, contradiction, suspicion, accusation, and resolution rules.
-- RU/EN localization switch with saved locale.
-- LocalStorage save state.
-- Safe fallback answers when AI is unavailable or returns invalid output.
+## Judge Snapshot
 
-## Contest Fit
+| Surface | Current state |
+|---|---|
+| Contest scope | One polished playable detective case |
+| Platform | Mobile browser, no install |
+| AI role | Live NPC dialogue performer |
+| Game authority | Deterministic client-side rules decide truth, evidence, and outcome |
+| Model path | Server-side Groq proxy, no browser secrets |
+| Offline resilience | Role-aware fallback answers keep the flow playable |
+| Languages | English and Russian dictionaries with saved locale |
 
-- Playable in a mobile browser.
-- No app download required.
-- AI is part of gameplay, not decoration.
-- The hidden truth is never delegated to the AI model.
-- Submission story: the player interrogates suspects, catches contradictions, and proves the case through evidence.
+## What It Does
 
-## Run Locally
+- Starts directly in a compact interrogation interface.
+- Lets the player question four suspects with different pressure behavior.
+- Uses Groq `llama-3.1-8b-instant` for short suspect answers.
+- Keeps the hidden truth table out of the live AI prompt.
+- Unlocks clues, contradictions, suspicion changes, accusation scoring, and resolution through deterministic engine rules.
+- Saves progress in LocalStorage.
+- Provides safe fallback answers when the AI provider is unavailable, rate-limited, or returns invalid output.
+
+## Why It Matters
+
+Most AI game prototypes let the model act like the whole game master. Liarline uses AI where it is strongest, as an improvising character actor, and uses deterministic state where fairness matters. The player wins by proving the case with evidence, not by trusting whatever a model says.
+
+## Quickstart
 
 ```bash
 npm install
@@ -34,73 +43,117 @@ npm run dev
 
 Open the local URL printed by Next.js.
 
-For live AI interrogation, create `.env.local` from `.env.example` and set:
+For live AI interrogation, copy `.env.example` to `.env.local` and add a server-only Groq key:
 
 ```bash
 GROQ_API_KEY=your_key_here
 ```
 
-Without a valid key, the game still uses safe fallback answers so the flow does not break.
+Optional backup keys can be added on the server only:
+
+```bash
+GROQ_API_KEYS=your_key_here,your_key_here
+# or:
+GROQ_API_KEY_1=your_key_here
+GROQ_API_KEY_2=your_key_here
+GROQ_API_KEY_3=your_key_here
+```
+
+Without a valid key, the game still runs through guarded fallback answers. Do not describe a fallback-only recording as live AI in a contest demo.
 
 ## Verification
+
+Core gates:
 
 ```bash
 npm run build
 npm run test:game-engine
 npm run test:npc-turn
 npm run test:demo-route
-npm run capture:release-screenshots
+npm run test:win-push-phase1
+npm run test:win-push-phase1-readiness
+npm run test:win-push-phase2-ai-quality
+npm run test:win-push-phase2-quarantine
+npm run test:win-push-phase3-provider-proof
+npm run test:win-push-phase4-mobile-ux
+npm run test:win-push-phase5-visual-dna
+npm run test:win-push-phase6-qa
+npm run test:win-push-phase7-submission
+npm run test:win-push-phase8-postlaunch
 npm run test:ui-copy
 npm run test:mobile-ui
 npm run test:visual-dna
 npm run test:visual-assets
-npm run test:release-security
-npm run test:public-docs
-npm run test:project-hygiene
-npm run test:release-contracts
-npm run test:release-monitoring
-npm run test:release-ops
-npm run test:release-postlaunch
-npm run test:release-playthrough
-npm run test:release-browser
+npm run test:contest-final-packet
 npm run test:judge-readiness
+npm run test:release-postlaunch
 ```
+
+Full release and win-push gates are documented in [docs/RELEASE.md](docs/RELEASE.md) and [docs/MASTER_TODO.md](docs/MASTER_TODO.md).
+The current win-push suite includes AI quarantine, provider proof, mobile UX, visual DNA, QA, submission, and post-launch readiness checks.
+
+## Feedback intake
+
+The resolution screen includes a local feedback intake panel for AI quality, missed contradictions, notebook clarity, unfair accusation reports, mobile bugs, and localization issues. Feedback remains local and is used as a post-launch readiness signal.
 
 ## AI Boundary
 
-- The model performs suspects only.
-- The hidden truth table stays in the local game state.
-- The engine decides clue unlocks, contradiction, suspicion changes, accusation result, rating, and resolution.
-- Fallback answers are visibly marked and do not spend action points, unlock clues, or move suspicion.
+The model is an actor, not the judge.
 
-## Troubleshooting
+```mermaid
+flowchart LR
+  Player["Player question"] --> Engine["Deterministic game engine"]
+  Engine --> Guard["TruthTable guard"]
+  Guard --> Proxy["/api/npc-turn"]
+  Proxy --> Groq["Groq NPC model"]
+  Groq --> Validate["Response validation"]
+  Validate --> Engine
+  Engine --> UI["Clues, suspicion, accusation, resolution"]
+```
 
-- AI unavailable: confirm `GROQ_API_KEY` exists in `.env.local`, then run `npm run test:npc-turn`. The game remains playable through guarded fallback if the provider is unavailable.
-- Fallback appears during demo: do not describe that run as live AI. Restart and retry after the provider recovers.
-- Broken or stale progress: press `Restart` in the top bar. Corrupted saves are isolated and a clean local case starts.
-- Browser layout issue: run `npm run test:browser-smoke` and check a 390px-wide viewport first.
-- Localization issue: switch RU/EN in-game and run `npm run test:ui-copy` plus `npm run test:browser-phase7-polish`.
-- Release package hygiene: run `npm run test:release-security`, `npm run test:public-docs`, and `npm run test:project-hygiene` before publishing or submitting.
-- Release go/no-go: run `npm run test:release-contracts`, `npm run test:release-playthrough`, `npm run test:release-browser`, `npm run test:release-monitoring`, and `npm run test:release-postlaunch`.
-- Release ops: run `npm run test:release-ops` before using feedback, triage, limitations, or recovery playbooks in a submission workflow.
-- Post-launch readiness: run `npm run test:release-postlaunch` before hotfix, freshness, changelog, parity, rehearsal, or first-observation decisions.
-- Judge readiness: run `npm run test:judge-readiness` for the local package gate; run it with `LIARLINE_STRICT_SUBMISSION=1` plus public game, GitHub, and demo-video URLs before final Devpost submission.
+The live NPC request includes only public case facts, the active suspect profile, that suspect's allowed knowledge, recent local transcript, and strict output rules. It does not include the hidden culprit, true motive, full truth table, or global timeline.
 
-## Key Files
+## Demo Route
 
-- `src/app/` - Next.js App Router shell and API wrapper.
-- `src/components/` - mobile game UI.
-- `src/game/` - deterministic game state and rules.
-- `src/state/GameStore.tsx` - LocalStorage-backed game store.
-- `src/ai/` - AI contracts, prompt generation, validation, fallback.
-- `src/i18n/dictionaries.ts` - RU/EN copy and localized case data.
-- `docs/GAME_ARCHITECTURE.md` - architecture and AI contract.
-- `docs/visual-spec.md` - mobile visual direction.
-- `docs/SUBMISSION.md` - Devpost submission copy and demo path.
-- `docs/SUBMISSION_PACKAGE.md` - 100-point judge gate, required Devpost URLs, paste-ready copy, and strict submission check.
-- `docs/RELEASE.md` - release version notes, go/no-go checklist, asset provenance, outcome monitoring, hotfix criteria, freshness cycle, launch rehearsal, and first-observation rules.
-- `DESIGN.md` - Stitch/coding-agent visual handoff.
+The reproducible judge path is covered by `npm run test:demo-route`:
 
-## Public Scope Guardrail
+1. Open the game on a phone-width viewport.
+2. Ask the first suspect about the camera failure.
+3. Show the first AI answer with concrete case detail.
+4. Trigger the camera-vs-cart contradiction.
+5. Show Ivo's pressure shift.
+6. Open the notebook and show the contradiction/evidence record.
+7. Accuse with suspect, motive, and evidence.
+8. Show the final resolution and detective rating.
 
-This repo should describe the playable one-case game honestly. Future ideas such as a multi-case season, larger evidence board, or deeper trial system are product direction, not current submission promises.
+## Project Map
+
+| Path | Purpose |
+|---|---|
+| `src/app/` | Next.js App Router shell and `/api/npc-turn` route wrapper |
+| `src/components/` | Mobile game screens and shared UI |
+| `src/game/` | Deterministic game state, seed case, rules, clue contracts, visual logic |
+| `src/ai/` | NPC prompt contracts, validation, and fallback logic |
+| `src/state/GameStore.tsx` | LocalStorage-backed client store |
+| `src/i18n/dictionaries.ts` | English/Russian UI and case copy |
+| `docs/GAME_ARCHITECTURE.md` | Engine, AI, and state contracts |
+| `docs/SUBMISSION.md` | Devpost copy and demo script |
+| `docs/SUBMISSION_PACKAGE.md` | Submission proof packet and strict readiness notes |
+| `docs/GITHUB_PACKAGING_AUDIT.md` | GitHub packaging audit, file matrix, and metadata checklist |
+
+## Current Scope Guardrail
+
+This repository describes one playable case honestly. It must not claim a playable multi-case season, multiplayer, voice/video interrogation, accounts, unlimited generated cases, or a full trial system as current functionality.
+
+## Contributing And Support
+
+This is a contest/demo repository. Small fixes, documentation improvements, and reproducible bug reports are welcome, but the current priority is keeping the one-case Devpost build stable and honest.
+
+- Contribution guide: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Support policy: [SUPPORT.md](SUPPORT.md)
+- Security policy: [SECURITY.md](SECURITY.md)
+- Change history: [CHANGELOG.md](CHANGELOG.md)
+
+## License
+
+This repository is published for Devpost judging and portfolio review. It is not currently licensed as open source. See [LICENSE](LICENSE) for the current source-available viewing terms.

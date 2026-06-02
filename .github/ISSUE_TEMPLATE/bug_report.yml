@@ -1,0 +1,70 @@
+name: Bug report
+description: Report a reproducible gameplay, mobile UI, localization, fallback, or AI integration bug.
+title: "Bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a reproducible issue. Do not include API keys, private tokens, or personal data.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: List the exact route, clicks, selected locale, and suspect/question path.
+      placeholder: |
+        1. Open ...
+        2. Select ...
+        3. Ask ...
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - Mobile UI
+        - AI NPC answer
+        - Fallback answer
+        - Game engine / clue / accusation
+        - Localization
+        - Documentation
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser / device / viewport
+      placeholder: "Chrome on Android, Safari on iPhone, or 390x844 desktop viewport"
+    validations:
+      required: true
+  - type: dropdown
+    id: ai_mode
+    attributes:
+      label: AI mode
+      options:
+        - Live Groq response
+        - Fallback response
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Screenshots, console output, or command output. Redact secrets.
+    validations:
+      required: false

@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.next/
+.vercel/
+.playwright-mcp/
+test-results/
+playwright-report/
+_archive/
+docs/videos/
+*.log
+model-benchmark-results*.json
+liarline-dock-current.png
+public/ChatGPT Image*.png

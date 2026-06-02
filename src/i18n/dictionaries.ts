@@ -1,4 +1,5 @@
 import type { Clue, DetectiveRating, GameState, LieArchetype, Motive, Outcome, PublicFact, Suspect, TimelineEvent } from "../game/types";
+import type { FeedbackCategory } from "../release/feedbackIntake";
 
 export type Locale = "en" | "ru";
 
@@ -20,6 +21,9 @@ type Dictionary = {
     visualThesisBadge: string;
     coreHookLine: string;
     briefingPremise: string;
+    onboardingTitle: string;
+    onboardingGoal: string;
+    onboardingRules: string[];
     firstQuestionSetup: string;
     openNotebook: string;
     closeNotebook: string;
@@ -107,6 +111,7 @@ type Dictionary = {
     finalSubmitRisk: string;
     acknowledgeRiskLabel: string;
     submitDisabledRisk: string;
+    accusationMissingSelection: string;
     noActionReturn: string;
     safeRestartLine: string;
     evidenceType: string;
@@ -134,6 +139,13 @@ type Dictionary = {
     caseBeatDone: string;
     caseBeatLocked: string;
     suspectSelectAria: (name: string, suspicion: number) => string;
+    feedbackTitle: string;
+    feedbackBody: string;
+    feedbackNoteAria: string;
+    feedbackPlaceholder: string;
+    feedbackSubmit: string;
+    feedbackSaved: string;
+    feedbackCategories: Record<FeedbackCategory, string>;
   };
   suspicion: {
     label: string;
@@ -179,7 +191,7 @@ type Dictionary = {
   };
 };
 
-export const DEFAULT_LOCALE: Locale = "ru";
+export const DEFAULT_LOCALE: Locale = "en";
 
 export const dictionaries: Record<Locale, Dictionary> = {
   en: {
@@ -205,6 +217,13 @@ export const dictionaries: Record<Locale, Dictionary> = {
       visualThesisBadge: "Interrogate first",
       coreHookLine: "AI suspects can lie. Only evidence can convict.",
       briefingPremise: "The camera died before the theft. Theo's timeline is already shaking.",
+      onboardingTitle: "How to play",
+      onboardingGoal: "Find who stole the prototype. Interrogate suspects, catch a contradiction, then make one final accusation with evidence.",
+      onboardingRules: [
+        "Each question costs 1 AP. You have 9 AP for the case.",
+        "Suspicion is pressure, not proof. Use clues and contradictions before accusing.",
+        "AI performs suspect dialogue. The local Truth Table decides the real culprit and ending."
+      ],
       firstQuestionSetup: "Get his first story. Then test it against the cart log.",
       openNotebook: "Open notebook",
       closeNotebook: "Close notebook",
@@ -215,7 +234,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       firstQuestionCost: "Costs 1 AP",
       questionActionCost: "-1 AP",
       actionPointsRule: (remaining, total) => `Each question costs 1 AP. ${remaining}/${total} remain.`,
-      accuseLocked: (answered, needed) => `Accusation opens after ${needed} answers. Current: ${answered}.`,
+      accuseLocked: (answered, needed) => `Accusation opens after ${needed} live answers and the camera-vs-cart contradiction. Current: ${answered}.`,
       clueOpened: "clue opened",
       customQuestionAria: "Short question to the suspect",
       sendQuestion: "Send question",
@@ -302,6 +321,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       finalSubmitRisk: "Final means final: 1 wrong accusation creates a wrong-outcome ending.",
       acknowledgeRiskLabel: "I understand this is the one final accusation.",
       submitDisabledRisk: "Confirm the final risk before submitting.",
+      accusationMissingSelection: "Choose a suspect and motive before submitting.",
       noActionReturn: "No action points remain. Restart from the top bar to try a new line.",
       safeRestartLine: "Restart is always available from the top bar and starts a clean local case.",
       evidenceType: "Type",
@@ -310,9 +330,9 @@ export const dictionaries: Record<Locale, Dictionary> = {
       proofMotive: "Motive check",
       proofEvidence: "Evidence check",
       proofEvidenceSelected: (count) => `${count}/2 evidence selected`,
-      proofReady: "Evidence chain ready",
+      proofReady: "Evidence slots filled",
       proofIncomplete: "Evidence chain weak",
-      selectedEvidenceWarning: "A weak chain can still accuse, but it can only produce a partial or wrong-feeling result.",
+      selectedEvidenceWarning: "This only checks selected clue count. The verdict still checks whether those clues actually support the suspect and motive.",
       detectiveRating: "Detective work",
       reverseReconstruction: "Reverse reconstruction",
       missedOpportunity: "What you could still use",
@@ -328,7 +348,21 @@ export const dictionaries: Record<Locale, Dictionary> = {
       caseBeatCurrent: "current",
       caseBeatDone: "done",
       caseBeatLocked: "locked",
-      suspectSelectAria: (name, suspicion) => `Select ${name}. Suspicion ${suspicion}.`
+      suspectSelectAria: (name, suspicion) => `Select ${name}. Suspicion ${suspicion}.`,
+      feedbackTitle: "Player feedback",
+      feedbackBody: "Leave one post-case signal. It stores locally with outcome metadata only.",
+      feedbackNoteAria: "Optional feedback note",
+      feedbackPlaceholder: "What felt unclear or unfair?",
+      feedbackSubmit: "Save feedback",
+      feedbackSaved: "feedback saved locally",
+      feedbackCategories: {
+        ai_quality: "AI quality",
+        missed_contradiction: "Missed contradiction",
+        notebook_clarity: "Notebook clarity",
+        unfair_accusation: "Unfair accusation",
+        mobile_bug: "Mobile bug",
+        localization_issue: "Localization issue"
+      }
     },
     suspicion: {
       label: "Suspicion",
@@ -376,7 +410,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       recon_camera_break: "Theo broke the camera before the theft, creating a tempting false suspect.",
       recon_cart_log: "The cart log proves the prototype still moved after the camera problem.",
       recon_ivo_gap: "Ivo's inventory story leaves the 21:10 gap exposed.",
-      recon_final_verdict: "With motive and evidence aligned, Ivo is the only version that holds.",
+      recon_final_verdict: "The final verdict holds because motive and evidence align on Ivo.",
       recon_wrong_verdict: "The accusation missed the cart gap and let the wrong theory lead."
     },
     lieArchetypes: {
@@ -493,7 +527,13 @@ export const dictionaries: Record<Locale, Dictionary> = {
               ? "You say you left early. What did you actually see after 21:05?"
               : "You keep redirecting to facts. What did you hear near the storage door?",
         "Who had the strongest reason to touch the prototype?",
-        "What detail are you leaving out?"
+        suspect.suspectId === "suspect_ivo"
+          ? "Which minute around 21:10 does your inventory story not cover?"
+          : suspect.suspectId === "suspect_mara"
+            ? "What did you see after 21:05 that makes your early-leaving claim weak?"
+            : suspect.suspectId === "suspect_theo"
+              ? "Which camera fact is solid, and which minute is blurry?"
+              : "Name the exact sound and direction near storage."
       ],
       pressure: (_state, suspect, firstUnlockedClue) => [
         suspect.suspectId === "suspect_ivo"
@@ -504,11 +544,21 @@ export const dictionaries: Record<Locale, Dictionary> = {
               ? "Your panic explains the camera. What does it not explain?"
               : "Stop redirecting. Name the sound and the direction you heard.",
         firstUnlockedClue ? `This clue bothers me: ${firstUnlockedClue}. What do you say?` : "What would another suspect say about you?",
-        "Give me one detail that can be checked."
+        suspect.suspectId === "suspect_ivo"
+          ? "Which inventory record proves you were not near the cart at 21:10?"
+          : suspect.suspectId === "suspect_mara"
+            ? "What checkable fact puts the prototype in the lab after 21:05?"
+            : suspect.suspectId === "suspect_theo"
+              ? "Which part is only camera panic, and which part can be checked?"
+              : "Which storage-door fact can I verify?"
       ],
-      final: () => [
-        "What is the one minute in your story I should verify?",
-        "If you are innocent, who benefits from your confusion?",
+      final: (_state, suspect) => [
+        suspect.suspectId === "suspect_ivo"
+          ? "Final check: what covers your 21:10 inventory gap?"
+          : "What is the one minute in your story I should verify?",
+        suspect.suspectId === "suspect_ivo"
+          ? "If the cart log is routine, who can confirm that movement?"
+          : "If you are innocent, who benefits from your confusion?",
         "Last chance: correct anything you said before."
       ]
     }
@@ -536,6 +586,13 @@ export const dictionaries: Record<Locale, Dictionary> = {
       visualThesisBadge: "Сразу допрос",
       coreHookLine: "AI-подозреваемые могут лгать. Обвиняют только улики.",
       briefingPremise: "Камера умерла до кражи. Хронология Тео уже дрожит.",
+      onboardingTitle: "Как играть",
+      onboardingGoal: "Найдите, кто украл прототип. Допрашивайте подозреваемых, ловите противоречие и выдвигайте одно финальное обвинение с уликами.",
+      onboardingRules: [
+        "Каждый вопрос стоит 1 ОД. На дело есть 9 ОД.",
+        "Подозрение — это давление, а не доказательство. Перед обвинением сравнивайте улики и противоречия.",
+        "AI играет ответы подозреваемых. Настоящего виновного и концовку решает локальная таблица истины."
+      ],
       firstQuestionSetup: "Возьмите первую версию. Затем проверьте её логом тележки.",
       openNotebook: "Открыть записную книжку",
       closeNotebook: "Закрыть записную книжку",
@@ -546,7 +603,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       firstQuestionCost: "Стоит 1 ОД",
       questionActionCost: "-1 ОД",
       actionPointsRule: (remaining, total) => `Каждый вопрос стоит 1 ОД. Осталось ${remaining}/${total}.`,
-      accuseLocked: (answered, needed) => `Обвинение откроется после ${needed} ответов. Сейчас: ${answered}.`,
+      accuseLocked: (answered, needed) => `Обвинение откроется после ${needed} live-ответов и противоречия камера-тележка. Сейчас: ${answered}.`,
       clueOpened: "улика открыта",
       customQuestionAria: "Короткий вопрос подозреваемому",
       sendQuestion: "Отправить вопрос",
@@ -633,6 +690,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       finalSubmitRisk: "Финал есть финал: 1 неверное обвинение ведёт к ошибочной развязке.",
       acknowledgeRiskLabel: "Я понимаю, что это одно финальное обвинение.",
       submitDisabledRisk: "Подтвердите риск финала перед отправкой.",
+      accusationMissingSelection: "Выберите подозреваемого и мотив перед отправкой.",
       noActionReturn: "Очки действий закончились. Начните заново через верхнюю панель, чтобы проверить другую линию.",
       safeRestartLine: "Заново всегда доступно в верхней панели и запускает чистое локальное дело.",
       evidenceType: "Тип",
@@ -641,9 +699,9 @@ export const dictionaries: Record<Locale, Dictionary> = {
       proofMotive: "Проверка причины",
       proofEvidence: "Проверка улик",
       proofEvidenceSelected: (count) => `Выбрано улик: ${count}/2`,
-      proofReady: "Цепочка улик готова",
+      proofReady: "Улики выбраны",
       proofIncomplete: "Цепочка улик слабая",
-      selectedEvidenceWarning: "Слабая цепочка всё ещё позволяет обвинить, но может дать только частичную или ошибочную развязку.",
+      selectedEvidenceWarning: "Это проверка числа выбранных улик. Итог всё равно проверяет, поддерживают ли они подозреваемого и мотив.",
       detectiveRating: "Работа детектива",
       reverseReconstruction: "Обратная реконструкция",
       missedOpportunity: "Что ещё можно было использовать",
@@ -659,7 +717,21 @@ export const dictionaries: Record<Locale, Dictionary> = {
       caseBeatCurrent: "сейчас",
       caseBeatDone: "готово",
       caseBeatLocked: "закрыто",
-      suspectSelectAria: (name, suspicion) => `Выбрать ${name}. Подозрение ${suspicion}.`
+      suspectSelectAria: (name, suspicion) => `Выбрать ${name}. Подозрение ${suspicion}.`,
+      feedbackTitle: "Отзыв игрока",
+      feedbackBody: "Оставьте один сигнал после дела. Локально сохраняются только категория, итог и заметка.",
+      feedbackNoteAria: "Необязательная заметка к отзыву",
+      feedbackPlaceholder: "Что было непонятно или нечестно?",
+      feedbackSubmit: "Сохранить отзыв",
+      feedbackSaved: "отзыв сохранён локально",
+      feedbackCategories: {
+        ai_quality: "Качество AI",
+        missed_contradiction: "Пропущенное противоречие",
+        notebook_clarity: "Ясность блокнота",
+        unfair_accusation: "Нечестное обвинение",
+        mobile_bug: "Мобильная ошибка",
+        localization_issue: "Проблема локализации"
+      }
     },
     suspicion: {
       label: "Подозрение",
@@ -707,7 +779,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       recon_camera_break: "Тео сломал камеру до кражи, из-за чего стал удобной ложной целью.",
       recon_cart_log: "Лог тележки доказывает, что прототип всё равно вывезли после проблемы с камерой.",
       recon_ivo_gap: "Версия Иво про инвентарь оставляет открытым провал около 21:10.",
-      recon_final_verdict: "Когда мотив и улики сходятся, держится только версия с Иво.",
+      recon_final_verdict: "Финальный вердикт держится, потому что мотив и улики сходятся на Иво.",
       recon_wrong_verdict: "Обвинение пропустило провал с тележкой и пошло за ложной версией."
     },
     lieArchetypes: {
@@ -824,7 +896,13 @@ export const dictionaries: Record<Locale, Dictionary> = {
               ? "Вы говорите, что ушли рано. Что вы на самом деле видели после 21:05?"
               : "Вы всё время возвращаете разговор к фактам. Что вы слышали у двери склада?",
         "У кого была самая сильная причина трогать прототип?",
-        "Какую деталь вы недоговариваете?"
+        suspect.suspectId === "suspect_ivo"
+          ? "Какая минута около 21:10 не закрыта вашей версией про инвентарь?"
+          : suspect.suspectId === "suspect_mara"
+            ? "Что вы видели после 21:05, из-за чего версия про ранний уход слабеет?"
+            : suspect.suspectId === "suspect_theo"
+              ? "В чём вы уверены про камеру, а где путается минута?"
+              : "Назовите точный звук и направление у двери склада."
       ],
       pressure: (_state, suspect, firstUnlockedClue) => [
         suspect.suspectId === "suspect_ivo"
@@ -835,11 +913,21 @@ export const dictionaries: Record<Locale, Dictionary> = {
               ? "Ваша паника объясняет камеру. Чего она не объясняет?"
               : "Хватит уходить в общие факты. Назовите звук и направление.",
         firstUnlockedClue ? `Меня тревожит эта улика: ${firstUnlockedClue}. Что скажете?` : "Что другой подозреваемый сказал бы о вас?",
-        "Назовите одну деталь, которую можно проверить."
+        suspect.suspectId === "suspect_ivo"
+          ? "Какой журнал инвентаря доказывает, что вас не было у тележки в 21:10?"
+          : suspect.suspectId === "suspect_mara"
+            ? "Какой проверяемый факт оставляет прототип в лаборатории после 21:05?"
+            : suspect.suspectId === "suspect_theo"
+              ? "Где заканчивается паника из-за камеры и начинается проверяемый факт?"
+              : "Какой факт по двери склада я могу проверить?"
       ],
-      final: () => [
-        "Какую одну минуту в вашей истории мне проверить?",
-        "Если вы невиновны, кому выгодна ваша путаница?",
+      final: (_state, suspect) => [
+        suspect.suspectId === "suspect_ivo"
+          ? "Финальная проверка: чем закрыт ваш провал около 21:10?"
+          : "Какую одну минуту в вашей истории мне проверить?",
+        suspect.suspectId === "suspect_ivo"
+          ? "Если тележка была обычной, кто подтвердит это движение?"
+          : "Если вы невиновны, кому выгодна ваша путаница?",
         "Последний шанс: исправьте то, что сказали раньше."
       ]
     }

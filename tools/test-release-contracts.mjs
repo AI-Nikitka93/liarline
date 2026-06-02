@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { ASSETS } from "../src/game/assets.ts";
 import {
@@ -11,8 +12,9 @@ import {
 } from "../src/release/releaseInfo.ts";
 import { assetProvenance, referenceMaterialProvenance } from "../src/release/assetProvenance.ts";
 
+const liveVoiceScript = await readFile("tools/test-live-suspect-voices.mjs", "utf8");
 const releaseDoc = await readFile("docs/RELEASE.md", "utf8");
-const masterTodo = await readFile("_archive/agent-memory/docs/MASTER_TODO.md", "utf8");
+const activeMasterTodo = await readFile("docs/MASTER_TODO.md", "utf8");
 
 const assetPaths = [
   ASSETS.caseHero,
@@ -67,8 +69,13 @@ for (const fragment of [
   assert.ok(releaseDoc.includes(fragment), `docs/RELEASE.md missing ${fragment}`);
 }
 
-for (const todoId of ["T171", "T172", "T173", "T174", "T175", "T176"]) {
-  assert.ok(masterTodo.includes(`[x] ${todoId}`), `${todoId} must be closed`);
+for (const todoId of ["T001", "T002", "T003", "T004", "T005", "T006", "T007", "T008", "T009", "T010"]) {
+  assert.ok(activeMasterTodo.includes(`[x] ${todoId}`), `${todoId} must be closed in the active win-push ledger`);
 }
+assert.ok(activeMasterTodo.includes("total ordinary tasks: 188"), "active MASTER TODO must preserve coverage count");
+assert.ok(liveVoiceScript.includes("AI_SUSPECT_VOICE_RUN_CURRENT.md"), "live voice run must write current evidence");
+assert.ok(!liveVoiceScript.includes("AI_SUSPECT_VOICE_RUN_2026-05-06.md"), "live voice run must not keep stale dated evidence path");
+assert.equal(existsSync("docs/AI_SUSPECT_VOICE_RUN_2026-05-06.md"), false, "stale dated live voice evidence must be removed");
+assert.equal(existsSync("docs/AI_SUSPECT_VOICE_RUN_CURRENT.md"), true, "current live voice evidence must exist");
 
 console.log("release contracts passed");

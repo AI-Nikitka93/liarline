@@ -6,7 +6,8 @@ import { promisify } from "node:util";
 
 const ROOT = process.cwd();
 const OUT_DIR = path.join(ROOT, "_archive", "agent-memory", "design-evidence");
-const OUT_PATH = path.join(OUT_DIR, "github-design-evidence-2026-05-06.json");
+const EVIDENCE_DATE = process.env.LIARLINE_DESIGN_EVIDENCE_DATE || "2026-05-09";
+const OUT_PATH = path.join(OUT_DIR, `github-design-evidence-${EVIDENCE_DATE}.json`);
 
 const repos = [
   "google-labs-code/design.md",
@@ -96,6 +97,7 @@ for (const repoName of repos) {
 
 const output = {
   collectedAt,
+  asOfDate: EVIDENCE_DATE,
   source: "GitHub REST API",
   authMode: auth.authMode,
   secretHandling: "No token value is printed, written, or stored.",

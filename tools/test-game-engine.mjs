@@ -42,6 +42,8 @@ assert.equal(request.npc.suspectId, "suspect_ivo");
 assert.equal(request.npc.performanceRole, "protective_liar");
 assert.equal(request.npc.lieArchetype, "direct_liar");
 assert.equal(request.npc.pressureState, "ordinary");
+assert.ok(request.npc.allowedKnowledge.knownPrivateClues.some((clue) => clue.clueId === "clue_ivo_gap" && !clue.npcFacingText.includes("Ivo") && /\bI\b|my/i.test(clue.npcFacingText)));
+assert.ok(!request.npc.allowedKnowledge.knownPrivateClues.some((clue) => clue.clueId === "clue_debt_message"));
 assert.equal(request.turn.responseLocale, "en");
 assert.equal(request.turn.responseLanguage, "English");
 assert.equal(request.turn.recentTranscript.length, 0);
@@ -61,6 +63,7 @@ assert.equal(ruRequest.turn.responseLocale, "ru");
 assert.equal(ruRequest.turn.responseLanguage, "Russian");
 assert.equal(ruRequest.casePublic.title, "Пропавший прототип");
 assert.equal(ruRequest.npc.displayName, "Иво");
+assert.ok(ruRequest.npc.allowedKnowledge.knownPrivateClues.some((clue) => clue.clueId === "clue_ivo_gap" && !clue.npcFacingText.includes("Иво") && /я|мой|меня/i.test(clue.npcFacingText)));
 assert.ok(ruRequestText.includes("Пропавший прототип"));
 assert.ok(!ruRequestText.includes("culpritSuspectId"));
 assert.ok(!ruRequestText.includes("trueMotiveId"));
@@ -115,10 +118,104 @@ assert.equal(firstTheoTurn.suspects.suspect_theo.visibleState.suspicion, 15);
 assert.ok(firstTheoTurn.deduction.suspicionSignals.some((signal) => signal.signalId === "signal_theo_timeline_mismatch" && signal.resolved));
 assert.ok(firstTheoTurn.deduction.suspicionSignals.some((signal) => signal.signalId === "signal_ivo_detail_unverified" && !signal.resolved));
 assert.ok(firstTheoTurn.deduction.suspicionSignals.some((signal) => signal.signalId === "signal_mara_statement_conflict" && !signal.resolved));
+
+const recoveredCameraAfterGuardedTurn = applyNpcTurnResult(
+  {
+    ...state,
+    phase: "interrogation",
+    suspects: {
+      ...state.suspects,
+      suspect_theo: {
+        ...state.suspects.suspect_theo,
+        visibleState: {
+          ...state.suspects.suspect_theo.visibleState,
+          questionsAsked: 2
+        }
+      }
+    }
+  },
+  FIRST_INTERROGATION_SUSPECT_ID,
+  firstTheoQuestions[0],
+  {
+    ok: true,
+    source: "groq",
+    requestId: "turn_recovered_camera_unlock",
+    model: firstTheoRequest.model,
+    response: {
+      answer_text: "Я повредил коридорную камеру до кражи. Это случилось около 21:05.",
+      truthfulness: "partial",
+      suspicion_delta: 2,
+      revealed_clue_id: null,
+      contradiction_risk: 68,
+      npc_mood: "nervous",
+      notebook_hint: "Камера сломалась до кражи."
+    },
+    meta: {
+      latencyMs: 321,
+      fallbackReason: null,
+      providerStatus: 200,
+      retryAfter: null,
+      validationWarnings: []
+    }
+  }
+);
+assert.equal(recoveredCameraAfterGuardedTurn.clues.clue_camera_fault.unlocked, true);
+assert.ok(recoveredCameraAfterGuardedTurn.playerNotebook.contradictions.includes("contradiction_camera_vs_cart"));
+
 const postCollapseIvoRequest = buildNpcTurnRequest(firstTheoTurn, "suspect_ivo", "Why does the cart log point back to you?");
 assert.equal(postCollapseIvoRequest.npc.pressureState, "contradiction");
 assert.equal(postCollapseIvoRequest.npc.mood, "panicking");
 assert.ok(postCollapseIvoRequest.npc.allowedKnowledge.allowedFalseClaims.some((claim) => claim.includes("inventory") || claim.includes("инвентар")));
+
+const deterministicIvoGapTurn = applyNpcTurnResult(firstTheoTurn, "suspect_ivo", "Which minute around 21:10 does your inventory story not cover?", {
+  ok: true,
+  source: "groq",
+  requestId: "turn_engine_gap_unlock",
+  model: postCollapseIvoRequest.model,
+  response: {
+    answer_text: "No, my inventory story covers the minute before 21:10, not the cart minute itself.",
+    truthfulness: "lie",
+    suspicion_delta: 2,
+    revealed_clue_id: null,
+    contradiction_risk: 64,
+    npc_mood: "defensive",
+    notebook_hint: "Ivo leaves 21:10 exposed."
+  },
+  meta: {
+    latencyMs: 300,
+    fallbackReason: null,
+    providerStatus: 200,
+    retryAfter: null,
+    validationWarnings: []
+  }
+});
+assert.equal(deterministicIvoGapTurn.clues.clue_ivo_gap.unlocked, true);
+assert.ok(deterministicIvoGapTurn.playerNotebook.unlockedClueIds.includes("clue_ivo_gap"));
+
+const deterministicDebtTurn = applyNpcTurnResult(deterministicIvoGapTurn, "suspect_ivo", "What money pressure or message made this prototype urgent for you?", {
+  ok: true,
+  source: "groq",
+  requestId: "turn_engine_debt_unlock",
+  model: postCollapseIvoRequest.model,
+  response: {
+    answer_text: "No, the message was urgent, and it was about money, not just the lab cart.",
+    truthfulness: "lie",
+    suspicion_delta: 1,
+    revealed_clue_id: null,
+    contradiction_risk: 71,
+    npc_mood: "defensive",
+    notebook_hint: "The money message matters."
+  },
+  meta: {
+    latencyMs: 300,
+    fallbackReason: null,
+    providerStatus: 200,
+    retryAfter: null,
+    validationWarnings: []
+  }
+});
+assert.equal(deterministicDebtTurn.clues.clue_debt_message.unlocked, true);
+assert.ok(deterministicDebtTurn.playerNotebook.unlockedClueIds.includes("clue_debt_message"));
 
 const deadEndCandidate = {
   ...firstTheoTurn,
@@ -272,7 +369,15 @@ const accusationReady = {
   ...illegalReveal,
   transcript: [...illegalReveal.transcript, illegalReveal.transcript[0]]
 };
-const accusationPreview = goToAccusation(accusationReady);
+assert.equal(goToAccusation(accusationReady).phase, "interrogation");
+const accusationReadyWithCoreContradiction = {
+  ...accusationReady,
+  deduction: {
+    ...accusationReady.deduction,
+    collapseTriggered: true
+  }
+};
+const accusationPreview = goToAccusation(accusationReadyWithCoreContradiction);
 assert.equal(accusationPreview.phase, "accusation");
 const resumedInterrogation = returnToInterrogation(accusationPreview);
 assert.equal(resumedInterrogation.phase, "interrogation");
@@ -309,6 +414,14 @@ const lossState = submitAccusation(illegalReveal, {
 assert.equal(lossState.resolution.outcome, "loss");
 assert.equal(lossState.resolution.detectiveRating, "misled");
 assert.ok(lossState.resolution.reverseReconstructionStepIds.includes("recon_wrong_verdict"));
+
+const wrongSuspectWithRealEvidenceState = submitAccusation(illegalReveal, {
+  accusedSuspectId: "suspect_mara",
+  selectedMotiveId: "motive_rivalry",
+  selectedEvidenceClueIds: ["clue_ivo_gap", "clue_camera_fault"]
+});
+assert.equal(wrongSuspectWithRealEvidenceState.resolution.outcome, "loss");
+assert.equal(wrongSuspectWithRealEvidenceState.resolution.detectiveRating, "misled");
 
 const partialState = submitAccusation(illegalReveal, {
   accusedSuspectId: "suspect_ivo",

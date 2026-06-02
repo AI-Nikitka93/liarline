@@ -31,7 +31,9 @@ Required checks:
 - `npm run build`
 - `npm run test:game-engine`
 - `npm run test:release-playthrough`
+- `npm run test:demo-video-package`
 - `npm run test:release-browser`
+- `npm run test:production-layout`
 - `npm run test:release-monitoring`
 - `npm run test:release-contracts`
 - `npm run test:judge-readiness`
@@ -140,6 +142,11 @@ Release link shows the wrong version:
 
 - AI access: before each patch, re-check Groq model availability, rate limits, response errors, fallback copy, and `npm run test:npc-turn` against `https://console.groq.com/docs/model/llama-3.1-8b-instant` and `https://console.groq.com/docs/rate-limits`.
 - Contest rules: before submission, re-check Devpost AI Game Week requirements against `https://ai-game-week-29908.devpost.com/`, `docs/SUBMISSION.md`, and `docs/CONTEST_REQUIREMENTS_2026-05-06.md`.
+- Phase 1 win-push facts: after changing current audit, source-of-truth, score-risk, AI-game practice, or IDEA ANCHOR guardrails, run `npm run test:win-push-phase1`.
+- Phase 1 readiness facts: after changing public claims, external dependency map, provider status, backup AI decision, skill stack, codebase intelligence, or current risk baseline, run `npm run test:win-push-phase1-readiness`.
+- Phase 2 AI quality gate: after changing NPC prompts, response validation, live-suspect voice tests, judge-route AI beats, or actor-not-judge boundaries, run `npm run test:win-push-phase2-ai-quality`.
+- Phase 2 quarantine gate: after changing playable prompt language, AI answer anchors, filler/leak/repeat quarantine, fallback impact, live transcript audit, manual review checklist, or latency boundaries, run `npm run test:win-push-phase2-quarantine`.
+- Phase 3 provider/proof gate: after changing backup-provider decisions, secret-safe matrix, live AI regressions, proof-chain fairness, accusation entry, detective ratings, outcomes, or motive localization, run `npm run test:win-push-phase3-provider-proof`.
 - Dependency risk: before each patch, re-check lockfile, package manifest, security check, and build without unsafe forced downgrades.
 - Browser behavior: weekly after launch and after layout changes, re-check mobile viewport, virtual keyboard, fixed dock, and in-app browser behavior against MDN VisualViewport / viewport guidance and project browser checks.
 
@@ -149,6 +156,22 @@ Release link shows the wrong version:
 - Devpost challenge requirements and submission fields.
 - Dependency/security advisory state.
 - Mobile browser viewport and keyboard behavior.
+- 2026 AI-game practice assumptions around meaningful AI, bounded state, context drift, and NPC voice failure modes.
+- Backup provider limits and structured-output support for Gemini, OpenRouter, Hugging Face, and Mistral.
+- AI NPC voice and hallucination assumptions around role consistency, small context, structured output, post-generation validation, and game-state separation.
+- AI answer quarantine assumptions around playable anchors, repeated-answer rejection, non-impacting degraded fallback, bilingual transcript audit, and live latency boundaries.
+
+## Current risk baseline
+
+- AI quality: live Groq works, but first answer quality is volatile; verify with `npm run test:npc-turn`, `npm run test:live-suspects`, and `npm run test:demo-route`.
+- AI answer quarantine: generic filler, internal markers, invented evidence, repeated answers, and fallback side effects are guarded by `npm run test:win-push-phase2-quarantine`.
+- Proof-chain fairness: accusation stays locked until the camera-vs-cart contradiction is seen, unless AP reaches zero; verify with `npm run test:win-push-phase3-provider-proof`.
+- Mobile UI: current viewports pass, but dock/keyboard/tap-target regressions are score risks; verify with `npm run test:mobile-ui`, `npm run test:release-browser`, `npm run test:production-layout`, and `npm run test:browser-smoke`.
+- Language parity: RU/EN state is present, but mixed-language answers are a visible polish risk; verify with `npm run test:ui-copy` and `npm run test:live-suspects`.
+- Buttons: critical actions are covered by playthrough/browser gates; verify with `npm run test:release-playthrough` and `npm run test:release-browser`.
+- Visual proof: visual DNA/assets are covered; verify with `npm run test:visual-dna` and `npm run test:visual-assets`.
+- Final submission: strict readiness still needs public game, GitHub, and demo-video URLs; verify with `LIARLINE_STRICT_SUBMISSION=1 npm run test:judge-readiness`.
+- Demo video: local EN/RU package must pass `npm run test:demo-video-package`, but the uploaded public video URL remains external; verify after upload with strict judge readiness.
 
 ## Post-release changelog discipline
 
@@ -178,7 +201,9 @@ Each post-release entry must include:
 ## Judge readiness
 
 - Local gate: `npm run test:judge-readiness`.
+- Final packet gate: `npm run test:contest-final-packet`.
 - Strict Devpost gate: set `LIARLINE_PUBLIC_URL`, `LIARLINE_GITHUB_URL`, `LIARLINE_DEMO_VIDEO_URL`, and `LIARLINE_STRICT_SUBMISSION=1`, then run `npm run test:judge-readiness`.
+- Strict mode validates URL format and live reachability for the public game and GitHub repository; the video URL still has to be the actual uploaded 1-3 minute demo.
 - Local package without public URL, GitHub URL, and demo video URL has an honest score ceiling of 88 because Devpost can treat missing external artifacts as incomplete.
 - Strict mode passing with the three public artifacts raises the packaging/compliance ceiling to 100; the video still must show current release UI and must not call fallback footage live AI.
 
@@ -194,3 +219,183 @@ Each post-release entry must include:
 - Suspect face is visible before explanation-heavy reading.
 - First-question CTA is visible and primary.
 - First AI answer reads as suspect performance and leads into contradiction/persona shift without external explanation.
+
+## Phase 10 validation checks
+
+- Guaranteed contradiction: release playthrough reaches `contradiction_camera_vs_cart` from the first Theo camera question without using a hint; watch only for repeated feedback that it feels too scripted.
+- Persona shift: Ivo shifts into a panicking contradiction state on the demo route; tune pressure wording only if video or first players say the shift is too subtle.
+- Collapse moment: the case pivot explains that Theo's camera panic is not enough and the cart gap matters more.
+- Weak/Strong confidence: stays coarse and tied to proof strength, not culprit identity.
+- Hint depth: one gated hint remains enough for the current one-case release; add a second level only after repeated stuck-after-hint evidence.
+- Notebook load: current risk is comparison clarity after contradiction, not too many evidence types.
+- Resolution rating: keep Sharp/Careful/Reckless/Misled, but collect fairness notes before changing names or tiers.
+
+## First follow-up patch backlog
+
+- Notebook comparison clarity: patch if repeated feedback mentions missed contradiction or unreadable Notebook after reveal.
+- Persona-shift punch: patch if Ivo's pressure answer feels too calm or generic in video or first-player feedback.
+- Rating fairness copy: patch if players understand the culprit but object to Resolution rating language.
+
+This backlog intentionally excludes season expansion, new cases, full trial mode, multiplayer, voice, accounts, and procedural case generation.
+
+## Second-case readiness criteria
+
+- First case has no repeated confusion around contradiction, persona shift, Notebook comparison, or rating fairness.
+- Second case adds one new deduction tool that changes reasoning, not just a new suspect skin or longer transcript.
+- AI remains an NPC performer and never owns truth, clue validity, or outcome resolution.
+
+## Future case template
+
+- Required beats: false certainty, guaranteed contradiction, collapse, persona shift, and resolution rating.
+- Required boundary: every case must have a tempting wrong theory with one visible flaw.
+- Required boundary: every guaranteed contradiction must be reachable without a hint.
+- Required boundary: every persona shift must be visible through AI performance, not only UI labels.
+
+## Model and platform update rules
+
+- Before each patch: re-check Groq access and `npm run test:npc-turn`.
+- Before submission: re-check Devpost fields, public URL, GitHub URL, video URL, and AI-use wording.
+- After follow-up UI changes: re-run mobile/browser gates for dock, keyboard, transcript, and Notebook behavior.
+
+## Visual asset review rules
+
+- Reject future assets with watermarks, mangled text, plastic faces, unreadable evidence marks, or inconsistent lighting.
+- Reject assets that hide controls, reduce contrast, create overflow, or make the first screen look empty.
+- Reject visual drift into generic dashboard, copied reference layout, or unrelated season branding.
+
+## Post-follow-up hygiene
+
+- Archive rejected images, raw AI drafts, temporary logs, and research scraps outside the release bundle.
+- Run `npm run build` after gameplay, AI, UI, docs, or release-contract changes.
+- Update README, RELEASE, SUBMISSION, STATE, and TODO evidence only when shipped behavior actually changed.
+- Re-run deterministic playthrough and browser route before promoting a follow-up.
+
+## DESIGN.md retrospective
+
+- Helped: suspect-first mobile surface, visual DNA rules, and state-specific fallback/contradiction/persona-shift/Resolution guidance.
+- Needs clarification: exact Notebook comparison layouts before more evidence types, plus sharper rejection examples for generated face and evidence-text artifacts.
+
+## Project memory update
+
+- Confirmed: one polished case is the right release shape for this deadline.
+- Confirmed: AI suspects can lie, but only evidence can convict.
+- Confirmed: serverless Groq proxy plus deterministic client state is the correct mobile web architecture.
+- Do not reopen: hidden truth in live model prompt, full trial mode before first-case clarity, or extra cases before contradiction/collapse/Notebook/rating feedback is stable.
+
+## No-drift checklist
+
+- AI remains suspect performance, not judge or truth engine.
+- Every follow-up strengthens Interrogation, Suspicion, Contradiction, Notebook, Accusation, or Resolution.
+- First-case clarity beats season, trial, multiplayer, voice, accounts, and procedural-case expansion.
+
+## Full-game direction decision
+
+Decision: polish the first case further.
+
+Rejected:
+
+- Add second case now: blocked until first-case contradiction, collapse, Notebook, and rating feedback are stable.
+- Build season map now: would be marketing scaffolding without playable proof and would drift from AI lies / evidence convicts.
+
+The old Phase 10 ledger is closed. Current follow-up work starts from `docs/MASTER_TODO.md`, which reopens the project around AI answer quality, button-level proof, RU/EN parity, visual differentiation, strict submission proof, and post-launch resilience.
+
+## Phase 7 release decision
+
+Decision: `patch_before_submit`.
+
+Closed locally:
+- Judge QA routes: first-minute, full playthrough, wrong-player, partial-player, and 390px mobile browser route.
+- Submission packet: short copy, what it does, AI use, built with, demo route, and no-overclaim boundary.
+- Demo video script: first AI answer inside the first 20 seconds, contradiction, persona shift, Notebook, accusation, Resolution.
+- Hygiene: secrets, dead code, orphan assets, dependencies, release bundle, and ignore rules stay under executable checks.
+- Feedback intake: Resolution screen stores local post-case feedback and triages it into hotfix, follow-up patch, or future scope.
+
+Remaining blocker:
+- `real_demo_video_url`: upload the final 1-3 minute recording, set `LIARLINE_DEMO_VIDEO_URL`, then run strict judge readiness.
+
+Strict gate:
+
+```bash
+LIARLINE_PUBLIC_URL=https://liarline.vercel.app \
+LIARLINE_GITHUB_URL=https://github.com/AI-Nikitka93/liarline \
+LIARLINE_DEMO_VIDEO_URL="$REAL_UPLOADED_LIARLINE_DEMO_VIDEO_URL" \
+LIARLINE_STRICT_SUBMISSION=1 \
+npm run test:judge-readiness
+```
+
+No-overclaim boundary:
+- Current release is one playable case.
+- It does not include multiplayer, voice/video interrogation, accounts, unlimited generated cases, a full trial system, or a playable multi-case season.
+
+Patch-before-submit checks:
+- `npm run build`
+- `npm run test:win-push-phase7-submission`
+- `npm run test:browser-phase7-submission`
+- `npm run test:release-security`
+- `npm run test:project-hygiene`
+
+## Phase 8 post-launch readiness
+
+Status: Phase 8 is closed for post-launch operations. The inherited external blocker remains `real_demo_video_url`.
+
+### Hotfix decision rules
+
+- Unplayable path: hotfix before any polish if first-question -> contradiction -> accusation -> resolution cannot complete.
+- Broken first AI answer: hotfix if the first live answer is generic, mixed-language, fallback-only, or disconnected from camera/cart.
+- Truth leak: hotfix and stop release if hidden truth, culprit, motive, role, or internal marker reaches prompt, UI, transcript, or docs.
+- Broken fallback: hotfix if fallback spends AP, opens clues, shifts suspicion, blocks play, or claims live AI.
+- Broken restart: hotfix if restart leaves pending AI, corrupted save, wrong locale, or impossible navigation state.
+- Mobile blocker: hotfix if a critical action is covered, too small, off-screen, or unreachable on phone-width viewport.
+
+### Demo day recovery
+
+- AI outage: check Groq status, run `npm run test:npc-turn`, use degraded fallback only with honest labeling.
+- Public URL stale: open `https://liarline.vercel.app`, run public strict URL checks, redeploy or rollback if old UI appears.
+- Bad save: use top-bar Restart; if needed clear only `liarline.save.v1` and confirm corrupt-save quarantine.
+- Broken mobile layout: run `npm run test:browser-smoke` and `npm run test:production-layout`, fix dock/keyboard/tap target before visual polish.
+- Fallback-only recording: delete the take from live-AI submission material and retry after `npm run test:demo-route` passes.
+
+### Freshness review cycles
+
+- AI provider facts: refresh before every recording/hotfix from Groq model docs, Groq rate limits, Groq status, `npm run test:npc-turn`, and `npm run test:live-suspects`.
+- Contest/submission facts: refresh before deadline day, immediately before submit, and after submit from Devpost AI Game Week, Devpost submission help, and `npm run test:judge-readiness`.
+- Visual/browser behavior: refresh after every UI patch from MDN viewport docs, web.dev bfcache guidance, `npm run test:browser-smoke`, `npm run test:production-layout`, and `npm run test:browser-phase7-submission`.
+
+### Evidence-only first follow-up backlog
+
+- Notebook clarity: use local feedback and missed-contradiction notes only.
+- Persona-shift punch: use live-suspect audits and player notes saying Ivo pressure is too calm.
+- Rating fairness: use unfair-accusation feedback and Resolution rating objections.
+- AI generic-answer rate: use live-suspect/demo-route output and AI-quality feedback.
+
+### Second-case threshold
+
+Decision: do not start a second case yet.
+
+Required stable signals:
+- Notebook comparison clarity.
+- Persona-shift recognition.
+- Rating fairness.
+- AI generic-answer rate.
+- Restart/fallback/mobile reliability.
+
+### Future case template
+
+Template only, not current release: false certainty, guaranteed contradiction, collapse, persona shift, evidence-based resolution.
+
+### Do not reopen
+
+- Hidden truth in prompt.
+- Full trial mode.
+- Multiplayer.
+- Voice.
+- Accounts.
+- Procedural cases.
+
+### Changelog discipline
+
+Every change must include player impact, proof, no-drift check, and affected release docs. Reject changes that claim future scope as shipped or lack fresh verification.
+
+### Post-release artifact hygiene
+
+Raw AI outputs, rejected assets, logs, and research scraps stay outside the release bundle and are checked by `npm run test:project-hygiene`.

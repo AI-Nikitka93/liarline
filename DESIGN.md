@@ -1,6 +1,6 @@
 # Liarline DESIGN.md
 
-Updated: 2026-05-06.
+Updated: 2026-05-09.
 Purpose: AI-readable visual contract for Google Stitch and coding agents.
 
 ## Product Summary
@@ -40,6 +40,8 @@ Primary jobs:
 Direction: Neo-Noir Interrogation Terminal.
 
 The UI is dark, sharp, readable, and tense. It uses forensic amber for playable evidence/actions, signal red only for danger or contradiction, cyan for system/focus states, and rare warm paper texture for clue slips.
+
+Production rule: every screen must look like the same compact detective product. Do not create isolated "pretty" screens. Briefing, interrogation, notebook, accusation, and resolution must share the same ink shell, amber evidence grammar, red contradiction grammar, cyan system grammar, and suspect-portrait anchoring.
 
 Do:
 
@@ -103,9 +105,13 @@ Notebook is a drawer reachable during interrogation and accusation. Language swi
 
 First viewport starts with a suspect portrait, case pressure, and one dominant action: ask the first question. The suspect roster sits below, but the player should not need to read every case fact before entering play.
 
+Implementation markers: `first-viewport-visual-lock`, `suspect-first-hero`, `start-interrogation-surface`.
+
 ### Interrogation
 
 Contains top case strip, suspect dossier card, suspicion bar, theory/contradiction panel, transcript, suggested questions, custom input, AP pips, notebook button, and accusation button.
+
+Implementation markers: `interrogation-composition-panel`, `transcript-evidence-thread`, `visual-event-rail`, `contradiction-reveal-stage`, `persona-shift-card`.
 
 ### Notebook
 
@@ -115,9 +121,23 @@ Bottom drawer with clue slips, contradictions, and suspect notes. It should feel
 
 Finite selection screen for suspect, motive, evidence, risk acknowledgement, and final submit. It is not a mini-court.
 
+Implementation markers: `final-risk-stage`, `final-proof-ledger`, `final-risk-warning`, `selected-evidence-counter`.
+
 ### Resolution
 
 Verdict, detective rating, truth reconstruction, real culprit/motive, timeline, and replay action.
+
+Implementation markers: `resolution-verdict-stage`, `verdict-reconstruction-card`, `rating-stamp`, `missed-opportunity-card`.
+
+## Scenario Inserts And Mood System
+
+Scenario image inserts are small gameplay panels only. Required inserts: briefing tension, first AI hesitation, contradiction reveal, persona shift, accusation risk, and resolution. They must clarify the current deduction state and never add facts outside the deterministic case.
+
+Mood visual classes: `mood-controlled`, `mood-nervous`, `mood-defensive`, `mood-impatient`, `mood-shaken`, `mood-panicking`.
+
+Button role classes: `role-button-first-question`, `role-button-send`, `role-button-notebook`, `role-button-accuse`, `role-button-final-submit`, `role-button-restart`.
+
+Microeffects are allowed only for useful events: clue opened, contradiction found, persona shift, AP spent, final accusation, and resolution rating. They may animate only `opacity`, `transform`, or restrained `box-shadow`, and must collapse under `prefers-reduced-motion`.
 
 ## Reusable Components
 
@@ -160,6 +180,14 @@ Curation rules:
 - Reject style drift between portraits.
 - Reject assets that reveal truth too directly.
 - Check mobile crops before approval.
+
+Current asset workflow:
+
+- Produce or select one asset role at a time.
+- Use `src/game/assetBriefs.ts` as the executable brief source.
+- Use `src/game/assetCuration.ts` as the executable approval source.
+- Verify current release assets with `npm run test:visual-assets`.
+- Keep raw generations and rejected drafts outside `public/`.
 
 ## Copy And Tone
 
@@ -205,3 +233,4 @@ Avoid:
 - Google Labs `design.md` ecosystem: use DESIGN.md as an agent-readable visual contract.
 - VoltAgent `awesome-design-md`: use structured design sections, but do not copy brand UI.
 - GitHub REST API documentation: use environment-based authorization when collecting public design evidence, without printing or storing tokens.
+- Phase 5 current evidence: `docs/visual/PHASE5_VISUAL_FINDINGS_2026-05-09.md`, `docs/visual/ASSET_BRIEFS_2026-05-09.md`, and `_archive/agent-memory/design-evidence/github-design-evidence-2026-05-09.json`.

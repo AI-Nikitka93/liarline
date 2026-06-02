@@ -1,0 +1,283 @@
+{
+  "status": "VIDEO_READY",
+  "project": "Liarline",
+  "language": "ru",
+  "generatedAt": "2026-06-02T14:15:41.984Z",
+  "presentationFormat": "HYBRID_EXPLAINER",
+  "route": "https://liarline.vercel.app/",
+  "productionDeployId": "dpl_6zxCUAkdQfWBy2LFsV4qfdZCVFpr",
+  "recordedAgainstPublicUrl": "https://liarline.vercel.app/",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "target": "Devpost AI Game Week demo video package",
+  "contestSources": [
+    "https://ai-game-week-29908.devpost.com/rules",
+    "https://ai-game-week-29908.devpost.com/details/dates"
+  ],
+  "capabilityMatrix": [
+    {
+      "capability": "Shell",
+      "status": "AVAILABLE",
+      "usedFor": "commands, tests, encoding",
+      "note": "PowerShell on Windows"
+    },
+    {
+      "capability": "Browser Use / in-app browser",
+      "status": "AVAILABLE",
+      "usedFor": "not used directly",
+      "note": "Playwright route was deterministic and sufficient"
+    },
+    {
+      "capability": "Computer Use",
+      "status": "NOT_CHECKED",
+      "usedFor": "not required",
+      "note": "browser app only"
+    },
+    {
+      "capability": "Playwright / screenshots",
+      "status": "AVAILABLE",
+      "usedFor": "mobile UI recording and keyframes",
+      "note": "Playwright 1.59.1"
+    },
+    {
+      "capability": "FFmpeg / encoder",
+      "status": "AVAILABLE",
+      "usedFor": "MP4/WebM/contact sheet",
+      "note": "ffmpeg 8.1"
+    },
+    {
+      "capability": "TTS / M:\\AI\\Speak",
+      "status": "AVAILABLE_USED_IN_POST",
+      "usedFor": "voiceover post-production",
+      "note": "base recorder is silent; OmniVoice voiceover is generated after visual timeline lock"
+    },
+    {
+      "capability": "Skills / plugins / apps / MCP",
+      "status": "AVAILABLE",
+      "usedFor": "Playwright skill workflow",
+      "note": "no external connector needed"
+    },
+    {
+      "capability": "Workspace media/document deps",
+      "status": "AVAILABLE",
+      "usedFor": "media tooling availability check",
+      "note": "Codex bundled deps available"
+    },
+    {
+      "capability": "Image generation/viewing",
+      "status": "AVAILABLE_NOT_USED",
+      "usedFor": "not required",
+      "note": "product assets already exist"
+    },
+    {
+      "capability": "Git / cloud preview / PR route",
+      "status": "AVAILABLE",
+      "usedFor": "GitHub publish after package verification",
+      "note": "origin https://github.com/AI-Nikitka93/liarline.git"
+    }
+  ],
+  "factualClaims": [
+    "One playable mobile-browser detective case.",
+    "AI performs suspect dialogue through the app's NPC turn route.",
+    "Deterministic game state controls clues, contradiction, accusation, rating, and resolution.",
+    "RU/EN language packages are separated."
+  ],
+  "avoidedClaims": [
+    "multi-case season",
+    "multiplayer",
+    "voice/video interrogation",
+    "production-ready user traction",
+    "unlimited generated cases"
+  ],
+  "verification": {
+    "durationSeconds": 72.867,
+    "minFullDemoDurationGate": true,
+    "captionEvents": 11,
+    "captionEventsPerMinute": 9.41,
+    "captionZone": "top stable overlay",
+    "noSecretSurfaces": true,
+    "productionDeployId": "dpl_6zxCUAkdQfWBy2LFsV4qfdZCVFpr",
+    "recordedAgainstPublicUrl": "https://liarline.vercel.app/",
+    "voiceover": "reused_existing_omnivoice_voiceover",
+    "testsRunBeforeRecording": [
+      "npm run test:game-engine",
+      "npm run test:demo-route"
+    ],
+    "liveDemoRouteVerified": true,
+    "ffmpegEncoded": true,
+    "audioStreamPresent": true,
+    "titleCardLayoutFixed": true,
+    "captionSrtMovedToAvoidPlayerAutoLoad": true
+  },
+  "generatedArtifacts": [
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1.mp4",
+      "bytes": 2895645
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1.webm",
+      "bytes": 12124350
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-contact-sheet.png",
+      "bytes": 818105
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-script.md",
+      "bytes": 8428
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\raw-v1\\liarline-demo-ru-v1-raw.webm",
+      "bytes": 2957144
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-01.png",
+      "bytes": 244719
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-02.png",
+      "bytes": 759423
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-03.png",
+      "bytes": 462864
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-04.png",
+      "bytes": 581398
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-05.png",
+      "bytes": 501124
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-06.png",
+      "bytes": 549807
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-voiceover.wav",
+      "bytes": 3504044
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-audio-mix.wav",
+      "bytes": 3504044
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\slides\\layout-fix-v1\\ru-hook.png",
+      "bytes": 346294
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\slides\\layout-fix-v1\\ru-problem.png",
+      "bytes": 353662
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\slides\\layout-fix-v1\\ru-final.png",
+      "bytes": 351774
+    },
+    {
+      "path": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\captions\\liarline-demo-ru-v1-captions.srt",
+      "bytes": 1564
+    }
+  ],
+  "keyframes": [
+    {
+      "file": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-01.png",
+      "label": "hook",
+      "timeSeconds": 1
+    },
+    {
+      "file": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-02.png",
+      "label": "briefing",
+      "timeSeconds": 11.868
+    },
+    {
+      "file": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-03.png",
+      "label": "first-ai-answer",
+      "timeSeconds": 17.406
+    },
+    {
+      "file": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-04.png",
+      "label": "ivo-pressure",
+      "timeSeconds": 30.938
+    },
+    {
+      "file": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-05.png",
+      "label": "notebook-proof",
+      "timeSeconds": 44.383
+    },
+    {
+      "file": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-keyframe-06.png",
+      "label": "resolution",
+      "timeSeconds": 57.815
+    }
+  ],
+  "timeline": [
+    {
+      "start": 0.007,
+      "caption": "AI может лгать. Обвиняют только улики.",
+      "minDuration": 4
+    },
+    {
+      "start": 4.417,
+      "caption": "Здесь модель играет подозреваемых. Движок решает улики, противоречия и финал.",
+      "minDuration": 5
+    },
+    {
+      "start": 11.268,
+      "caption": "Открываю мобильное дело на русском.",
+      "minDuration": 4
+    },
+    {
+      "start": 15.406,
+      "caption": "Начинаю с Тео, чтобы сразу показать первый AI-ответ подозреваемого.",
+      "minDuration": 6
+    },
+    {
+      "start": 22.042,
+      "caption": "Фиксирую AI-ответ и детерминированное противоречие камера-vs-тележка.",
+      "minDuration": 7
+    },
+    {
+      "start": 29.438,
+      "caption": "Давлю на Иво, потому что движок сменил фокус после противоречия.",
+      "minDuration": 7
+    },
+    {
+      "start": 35.726,
+      "caption": "Спрашиваю про срочные деньги, чтобы собрать цепочку доказательств.",
+      "minDuration": 7
+    },
+    {
+      "start": 42.883,
+      "caption": "Открываю блокнот: судье видны улики и найденное противоречие.",
+      "minDuration": 8
+    },
+    {
+      "start": 50.777,
+      "caption": "Собираю финальное обвинение: подозреваемый, мотив и две улики.",
+      "minDuration": 10
+    },
+    {
+      "start": 56.615,
+      "caption": "Показываю вердикт, рейтинг детектива и восстановление истины.",
+      "minDuration": 9
+    },
+    {
+      "start": 65.062,
+      "caption": "Один мобильный детективный кейс для Devpost AI Game Week.",
+      "minDuration": 5
+    }
+  ],
+  "notes": [
+    "Recording captions are injected by Playwright only during capture; product code is unchanged.",
+    "Base recording is silent before post-production; final MP4/WebM are muxed with OmniVoice narration.",
+    "The raw local demo uses only the app route and visible UI; no .env, token, terminal, or private browser surface is recorded.",
+    "Opening/problem/final cards were replaced with full-frame 780x1688 slides after review; live UI and voice timeline were preserved.",
+    "SRT captions were moved into docs/videos/captions to prevent local players from auto-loading oversized external subtitles over the burned-in presentation.",
+    "Opening/problem/final cards were replaced with full-frame 780x1688 slides after review; live UI and voice timeline were preserved.",
+    "SRT captions were moved into docs/videos/captions to prevent local players from auto-loading oversized external subtitles over the burned-in presentation."
+  ],
+  "updatedAt": "2026-06-02T14:26:41.481Z"
+}

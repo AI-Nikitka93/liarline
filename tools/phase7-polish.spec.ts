@@ -3,6 +3,12 @@ import { createInitialGameState } from "../src/game/gameEngine";
 
 const baseUrl = process.env.LIARLINE_BASE_URL ?? "http://127.0.0.1:55046/";
 
+async function chooseEnglishIfNeeded(page: any) {
+  if (await page.locator(".language-entry-screen").isVisible()) {
+    await page.getByRole("button", { name: /English/ }).click();
+  }
+}
+
 function seedState(page: any, mutator: (state: any) => any, locale = "en") {
   const state = mutator(createInitialGameState());
   return page.addInitScript(({ seededState, selectedLocale }: { seededState: any; selectedLocale: string }) => {
@@ -47,6 +53,7 @@ test("phase 7 restart works from briefing, interrogation, accusation, and resolu
     });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(baseUrl, { waitUntil: "networkidle" });
+    await chooseEnglishIfNeeded(page);
     await page.getByRole("button", { name: "Restart", exact: true }).click();
     await expect(page.locator(".start-interrogation-surface")).toBeVisible();
     await expect(page.locator(".first-question-cta")).toBeVisible();
@@ -96,7 +103,7 @@ test("phase 7 locale switching preserves run and sends the selected response loc
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(baseUrl, { waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "ru", exact: true }).click();
+  await page.getByTestId("locale-toggle-ru").click();
   await expect(page.locator("text=Задать первый вопрос")).toBeVisible();
   await page.locator(".first-question-cta").click();
   await expect(page.locator(".contradiction-reveal-stage")).toBeVisible();

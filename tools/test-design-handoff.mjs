@@ -6,8 +6,10 @@ import { ICON_SYSTEM, iconClass } from "../src/game/iconSystem.ts";
 import { VISUAL_STATE_RULES } from "../src/game/visualStateRules.ts";
 
 const design = await readFile("DESIGN.md", "utf8");
-const evidenceRaw = await readFile("_archive/agent-memory/design-evidence/github-design-evidence-2026-05-06.json", "utf8");
+const evidenceRaw = await readFile("_archive/agent-memory/design-evidence/github-design-evidence-2026-05-09.json", "utf8");
 const evidence = JSON.parse(evidenceRaw);
+const phase5Findings = await readFile("docs/visual/PHASE5_VISUAL_FINDINGS_2026-05-09.md", "utf8");
+const phase5AssetBriefs = await readFile("docs/visual/ASSET_BRIEFS_2026-05-09.md", "utf8");
 
 for (const section of [
   "Product Summary",
@@ -26,6 +28,9 @@ for (const section of [
 for (const phrase of [
   "AI suspects can lie, but only evidence can convict",
   "Neo-Noir Interrogation Terminal",
+  "first-viewport-visual-lock",
+  "final-proof-ledger",
+  "resolution-verdict-stage",
   "Interrogation",
   "Contradiction",
   "Notebook",
@@ -61,6 +66,7 @@ for (const state of ["calm", "nervous", "aggressive", "panicking", "fallback", "
 }
 
 assert.equal(evidence.source, "GitHub REST API");
+assert.equal(evidence.asOfDate, "2026-05-09");
 assert.ok(
   ["unauthenticated_public", "env_token_present_redacted", "gh_cli_token_present_redacted"].includes(evidence.authMode),
   "unsafe GitHub auth mode"
@@ -68,5 +74,7 @@ assert.ok(
 assert.ok(evidence.secretHandling.includes("No token value"), "secret handling must be explicit");
 assert.ok(evidence.repos.length >= 6, "design evidence repo coverage too low");
 assert.ok(evidence.repos.some((repo) => repo.fullName === "VoltAgent/awesome-design-md"), "VoltAgent evidence missing");
+assert.ok(phase5Findings.includes("Patterns To Use") && phase5Findings.includes("Patterns To Reject"));
+assert.ok(phase5AssetBriefs.includes("Case Lab Hero") && phase5AssetBriefs.includes("Future AI Illustration Rules"));
 
 console.log("design handoff tests passed");

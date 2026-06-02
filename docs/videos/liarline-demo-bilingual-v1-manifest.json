@@ -1,0 +1,48 @@
+{
+  "status": "VIDEO_READY",
+  "project": "Liarline",
+  "reason": "Project has RU/EN dictionaries and locale persistence, so split language deliverables are required.",
+  "generatedAt": "2026-06-02T14:18:49.506Z",
+  "productionDeployId": "dpl_6zxCUAkdQfWBy2LFsV4qfdZCVFpr",
+  "recordedAgainstPublicUrl": "https://liarline.vercel.app/",
+  "packages": [
+    {
+      "lang": "ru",
+      "durationSeconds": 72.867,
+      "mp4": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1.mp4",
+      "webm": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1.webm",
+      "contactSheet": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-contact-sheet.png",
+      "captions": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\captions\\liarline-demo-ru-v1-captions.srt",
+      "script": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-script.md",
+      "manifest": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-manifest.json",
+      "voiceover": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-voiceover.wav",
+      "audioMix": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-ru-v1-audio-mix.wav"
+    },
+    {
+      "lang": "en",
+      "durationSeconds": 72,
+      "mp4": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1.mp4",
+      "webm": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1.webm",
+      "contactSheet": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-contact-sheet.png",
+      "captions": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\captions\\liarline-demo-en-v1-captions.srt",
+      "script": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-script.md",
+      "manifest": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-manifest.json",
+      "voiceover": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-voiceover.wav",
+      "audioMix": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\liarline-demo-en-v1-audio-mix.wav"
+    }
+  ],
+  "updatedAt": "2026-06-02T14:28:18.952Z",
+  "layoutRepair": {
+    "status": "applied",
+    "reason": "Initial title cards used a fixed 390px canvas inside a 780px export and looked pinned to the upper-left corner.",
+    "slideAssets": [
+      "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\slides\\layout-fix-v1\\ru-hook.png",
+      "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\slides\\layout-fix-v1\\ru-problem.png",
+      "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\slides\\layout-fix-v1\\ru-final.png",
+      "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\slides\\layout-fix-v1\\en-hook.png",
+      "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\slides\\layout-fix-v1\\en-problem.png",
+      "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\slides\\layout-fix-v1\\en-final.png"
+    ],
+    "srtCaptionsMovedTo": "M:\\Projects\\Konkurs\\AI Game Week\\docs\\videos\\captions"
+  }
+}

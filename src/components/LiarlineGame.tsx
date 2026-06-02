@@ -4,6 +4,10 @@ import { AlertTriangle, BookOpen, Check, FileText, Fingerprint, Gavel, MessageSq
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ASSETS, getSuspectPortrait } from "../game/assets";
+import { BUTTON_FEEDBACK_STATES, BUTTON_ROLE_SYSTEM, MICRO_EVENT_SYSTEM } from "../game/interactionVisualSystem";
+import { getMoodVisual } from "../game/moodVisualSystem";
+import { getScenarioInsert, type ScenarioInsertId } from "../game/scenarioVisuals";
+import { FEEDBACK_CATEGORIES, createFeedbackEntry, saveFeedbackEntry, type FeedbackCategory } from "../release/feedbackIntake";
 import {
   canGoToAccusation,
   canUseDeadEndHint,
@@ -21,17 +25,62 @@ import { NotebookDrawer } from "./NotebookDrawer";
 import { ActionPointPips, AppShell, NpcMoodFrame, PrimaryButton, SecondaryButton, SuspicionMeter, TopStrip } from "./ui";
 
 export function LiarlineGame() {
-  const { state } = useGameStore();
+  const { state, hasSelectedLocale } = useGameStore();
   useKeyboardInset();
 
   return (
     <AppShell>
-      {state.phase === "briefing" && <BriefingScreen />}
-      {state.phase === "interrogation" && <InterrogationScreen />}
-      {state.phase === "accusation" && <AccusationScreen />}
-      {state.phase === "resolution" && <ResolutionScreen />}
-      <NotebookDrawer />
+      {!hasSelectedLocale ? (
+        <LanguageEntryScreen />
+      ) : (
+        <>
+          {state.phase === "briefing" && <BriefingScreen />}
+          {state.phase === "interrogation" && <InterrogationScreen />}
+          {state.phase === "accusation" && <AccusationScreen />}
+          {state.phase === "resolution" && <ResolutionScreen />}
+          <NotebookDrawer />
+        </>
+      )}
     </AppShell>
+  );
+}
+
+function LanguageEntryScreen() {
+  const { setLocale } = useGameStore();
+
+  return (
+    <div className="language-entry-screen grid min-h-[100dvh] place-items-center bg-[radial-gradient(circle_at_top,rgb(15_118_110_/_0.18),transparent_34%),linear-gradient(180deg,#080a0d,#10141a)] px-4 py-8">
+      <section className="w-full max-w-[430px] rounded-liarline border border-line-500 bg-ink-850 p-5 shadow-terminal">
+        <div className="rounded border border-forensic-500/60 bg-forensic-500/10 px-3 py-2 font-mono text-[11px] font-bold uppercase text-forensic-500">
+          Liarline
+        </div>
+        <h1 className="mt-5 text-[30px] font-bold leading-9 text-text-50">Choose language / Выберите язык</h1>
+        <p className="mt-3 text-[15px] leading-6 text-text-300">
+          Detective game about interrogating AI suspects. AI can lie, but only evidence can convict.
+        </p>
+        <p className="mt-2 text-[15px] leading-6 text-text-300">
+          Детективная игра про допрос AI-подозреваемых. AI может лгать, но обвиняют только улики.
+        </p>
+        <div className="mt-6 grid gap-3">
+          <button
+            type="button"
+            onClick={() => setLocale("en")}
+            className="min-h-14 rounded-liarline border border-forensic-500 bg-forensic-500 px-4 py-3 text-left text-[17px] font-bold text-ink-950 shadow-terminal focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          >
+            English
+            <span className="mt-1 block font-mono text-[10px] uppercase text-ink-900/75">Start the case in English</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setLocale("ru")}
+            className="min-h-14 rounded-liarline border border-line-500 bg-ink-900 px-4 py-3 text-left text-[17px] font-bold text-text-50 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          >
+            Русский
+            <span className="mt-1 block font-mono text-[10px] uppercase text-text-400">Начать дело на русском</span>
+          </button>
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -43,13 +92,14 @@ function BriefingScreen() {
   const featuredSuspect = state.suspects[FIRST_INTERROGATION_SUSPECT_ID] || suspects[0];
   const localizedFeatured = localizeSuspect(featuredSuspect, locale);
   const featuredPortrait = getSuspectPortrait(localizedFeatured.suspectId);
+  const featuredMoodVisual = getMoodVisual(localizedFeatured.visibleState.mood);
 
   return (
     <div className="min-h-[100dvh] visual-dna-interrogation">
       <TopStrip state={state} label={dictionary.phaseLabels.briefing} locale={locale} onRestart={resetGame} />
       <section className="space-y-3 px-4 py-3 pb-[calc(var(--safe-bottom)+92px)]">
-        <div className="start-interrogation-surface overflow-hidden rounded-liarline border border-line-500 bg-ink-850 shadow-terminal">
-          <div className="relative h-64 overflow-hidden bg-ink-950">
+        <div className="start-interrogation-surface first-viewport-visual-lock overflow-hidden rounded-liarline border border-line-500 bg-ink-850 shadow-terminal">
+          <div className="suspect-first-hero relative h-64 overflow-hidden bg-ink-950" style={{ position: "relative" }}>
             <Image
               src={featuredPortrait || ASSETS.caseHero}
               alt={dictionary.ui.portraitAlt(localizedFeatured.displayName)}
@@ -89,6 +139,26 @@ function BriefingScreen() {
             <div className="rounded border border-signal-500/60 bg-signal-500/10 p-2 font-mono text-[10px] font-bold uppercase leading-4 text-signal-500">
               {dictionary.ui.coreHookLine}
             </div>
+            <ScenarioInsertPanel
+              id="briefing_tension"
+              label={dictionary.ui.coreHookLine}
+              caption={dictionary.ui.briefingPremise}
+              className={featuredMoodVisual.className}
+            />
+            <section className="onboarding-rules-card rounded-liarline border border-forensic-500/60 bg-forensic-500/10 p-3">
+              <p className="font-mono text-[11px] font-bold uppercase text-forensic-500">{dictionary.ui.onboardingTitle}</p>
+              <p className="mt-2 text-[14px] font-bold leading-5 text-text-100">{dictionary.ui.onboardingGoal}</p>
+              <div className="mt-3 grid gap-2">
+                {dictionary.ui.onboardingRules.map((rule, index) => (
+                  <div key={rule} className="grid grid-cols-[auto_1fr] gap-2 rounded border border-line-700 bg-ink-950/70 p-2">
+                    <span className="grid h-6 w-6 place-items-center rounded border border-forensic-500 font-mono text-[10px] font-bold text-forensic-500">
+                      {index + 1}
+                    </span>
+                    <p className="text-[13px] leading-5 text-text-200">{rule}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
             <CaseProgressRail state={state} locale={locale} />
           </div>
         </div>
@@ -108,14 +178,14 @@ function BriefingScreen() {
 
       <div className="mobile-action-dock fixed inset-x-0 z-40 mx-auto max-w-[430px] border-t border-line-700 bg-ink-900/95 p-4 pb-[var(--safe-bottom)] backdrop-blur">
         <div className="grid grid-cols-[1fr_auto] gap-3">
-          <PrimaryButton onClick={startFirstQuestion} className="first-question-cta min-h-[64px] text-left shadow-terminal">
+          <PrimaryButton onClick={startFirstQuestion} className={`first-question-cta min-h-[64px] text-left shadow-terminal ${BUTTON_ROLE_SYSTEM.firstQuestion.className} ${MICRO_EVENT_SYSTEM.apSpent.className}`}>
             <span className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5" />
               <span className="text-[17px]">{dictionary.ui.askFirstQuestion}</span>
             </span>
             <span className="mt-1 block font-mono text-[10px] uppercase text-ink-900/75">{dictionary.ui.firstQuestionSetup}</span>
           </PrimaryButton>
-          <SecondaryButton onClick={() => setNotebookOpen(true)} aria-label={dictionary.ui.openNotebook}>
+          <SecondaryButton onClick={() => setNotebookOpen(true)} aria-label={dictionary.ui.openNotebook} className={BUTTON_ROLE_SYSTEM.notebook.className}>
             <BookOpen className="h-5 w-5" />
           </SecondaryButton>
         </div>
@@ -149,8 +219,18 @@ function InterrogationScreen() {
   const localizedSuspect = localizeSuspect(suspect, locale);
   const suggestedQuestions = useMemo(() => getSuggestedQuestions(state, suspect.suspectId, locale), [locale, state, suspect.suspectId]);
   const transcript = state.transcript.slice(-6);
+  const latestTranscriptEntry = state.transcript.at(-1);
   const isPersonaShifted = state.deduction.personaShiftSuspectId === suspect.suspectId;
   const accusationReady = canGoToAccusation(state);
+  const countedTranscriptForAccusation = state.transcript.filter((entry) => entry.source !== "fallback").length;
+  const currentAiStatusLabel =
+    !pendingQuestion && latestTranscriptEntry?.source === "fallback" ? dictionary.ui.aiSourceFallback : dictionary.ui.aiSourceLive;
+  const activeMoodVisual = getMoodVisual(suspect.visibleState.mood);
+  const aiFeedbackClass = pendingQuestion
+    ? BUTTON_FEEDBACK_STATES.waitingAi
+    : latestTranscriptEntry?.source === "fallback"
+      ? BUTTON_FEEDBACK_STATES.fallback
+      : BUTTON_FEEDBACK_STATES.liveAnswer;
 
   useEffect(() => {
     const dock = dockRef.current;
@@ -199,7 +279,9 @@ function InterrogationScreen() {
   }, [state.transcript.length, pendingQuestion, dockHeight, suggestedQuestions.length, uiError, selectedSuspectId]);
 
   async function submit(question: string) {
-    await askQuestion(question);
+    const trimmedQuestion = question.trim();
+    if (!trimmedQuestion || pendingQuestion) return;
+    await askQuestion(trimmedQuestion);
     setCustomQuestion("");
   }
 
@@ -218,8 +300,8 @@ function InterrogationScreen() {
         }}
       >
         <div
-          className={`rounded-liarline border bg-ink-850 p-4 shadow-terminal ${
-            isPersonaShifted ? "persona-shift-card persona-pulse border-signal-500 shadow-signal" : "border-line-500"
+          className={`interrogation-composition-panel rounded-liarline border bg-ink-850 p-4 shadow-terminal ${
+            isPersonaShifted ? `persona-shift-card persona-pulse border-signal-500 shadow-signal ${MICRO_EVENT_SYSTEM.personaShift.className}` : "border-line-500"
           }`}
           aria-live={isPersonaShifted ? "polite" : undefined}
         >
@@ -231,6 +313,7 @@ function InterrogationScreen() {
               <p className="persona-reaction-line rounded border border-signal-500/60 bg-ink-950 px-3 py-2 text-[13px] font-bold leading-5 text-text-100">
                 {dictionary.ui.personaReactionLine}
               </p>
+              <ScenarioInsertPanel id="persona_shift" label={dictionary.ui.personaShift} caption={dictionary.ui.personaReactionLine} />
             </div>
           )}
           <div className="flex items-start justify-between gap-3">
@@ -239,6 +322,7 @@ function InterrogationScreen() {
                 className={`portrait-anchor relative h-20 w-20 shrink-0 overflow-hidden rounded-liarline border bg-ink-950 ${
                   isPersonaShifted ? "border-signal-500" : "border-line-500"
                 }`}
+                style={{ position: "relative" }}
               >
               {getSuspectPortrait(suspect.suspectId) ? (
                   <Image
@@ -257,7 +341,7 @@ function InterrogationScreen() {
               <p className="mt-1 text-[13px] leading-5 text-text-400">{localizedSuspect.publicProfile}</p>
               </div>
             </div>
-            <span className="rounded border border-line-500 px-2 py-1 font-mono text-[11px] uppercase text-text-200">
+            <span className={`rounded border border-line-500 px-2 py-1 font-mono text-[11px] uppercase text-text-200 ${activeMoodVisual.className}`}>
               {dictionary.moods[suspect.visibleState.mood] ?? suspect.visibleState.mood}
             </span>
           </div>
@@ -265,8 +349,8 @@ function InterrogationScreen() {
             <SuspicionMeter value={suspect.visibleState.suspicion} locale={locale} />
           </div>
           <div className="interrogation-status-strip witness-status-strip mt-3 grid grid-cols-3 gap-2">
-            <div className="rounded border border-cyan-400/60 bg-cyan-400/10 px-2 py-2">
-              <p className="font-mono text-[9px] font-bold uppercase text-cyan-300">{dictionary.ui.aiSourceLive}</p>
+            <div className={`rounded border border-cyan-400/60 bg-cyan-400/10 px-2 py-2 ${aiFeedbackClass}`}>
+              <p className="font-mono text-[9px] font-bold uppercase text-cyan-300">{currentAiStatusLabel}</p>
               <p className="mt-1 text-[11px] leading-4 text-text-300">{pendingQuestion ? dictionary.ui.analyzingResponse : dictionary.ui.thinkingLine}</p>
             </div>
             <div className="rounded border border-forensic-500/50 bg-forensic-500/10 px-2 py-2">
@@ -309,7 +393,9 @@ function InterrogationScreen() {
               type="button"
               onClick={() => setSelectedSuspectId(item.suspectId)}
               aria-label={dictionary.ui.suspectSelectAria(localizeSuspect(item, locale).displayName, item.visibleState.suspicion)}
-              className={`min-h-11 rounded-liarline border px-2 py-2 font-mono text-[11px] font-bold uppercase focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
+              aria-pressed={item.suspectId === suspect.suspectId}
+              data-testid={`suspect-selector-${item.suspectId}`}
+              className={`min-h-11 rounded-liarline border px-2 py-2 font-mono text-[11px] font-bold uppercase focus:outline-none focus:ring-2 focus:ring-cyan-400 ${getMoodVisual(item.visibleState.mood).className} ${
                 item.suspectId === suspect.suspectId
                   ? "border-forensic-500 bg-forensic-500 text-ink-950"
                   : "border-line-700 bg-ink-850 text-text-200"
@@ -330,12 +416,12 @@ function InterrogationScreen() {
             const entrySuspect = state.suspects[entry.suspectId] ? localizeSuspect(state.suspects[entry.suspectId], locale) : localizedSuspect;
 
             return (
-            <div key={entry.turnId} className="transcript-turn space-y-2">
+            <div key={entry.turnId} className="transcript-turn evidence-thread-turn space-y-2">
               <div className="ml-auto max-w-[82%] rounded-liarline border border-line-500 bg-ink-700 p-3">
                 <p className="font-mono text-[10px] font-bold uppercase text-forensic-500">{dictionary.ui.questionShort}</p>
                 <p className="mt-1 text-[14px] leading-5">{entry.questionText}</p>
               </div>
-              <div className="max-w-[88%] rounded-liarline border border-line-700 bg-ink-850/95 p-3 backdrop-blur-sm">
+              <div className={`transcript-evidence-thread max-w-[88%] rounded-liarline border border-line-700 bg-ink-850/95 p-3 backdrop-blur-sm ${entry.revealedClueId ? MICRO_EVENT_SYSTEM.clueOpened.className : ""}`}>
                 <p className="font-mono text-[10px] font-bold uppercase text-text-400">
                   {entrySuspect.displayName}
                 </p>
@@ -378,6 +464,7 @@ function InterrogationScreen() {
             <div className="thinking-scan max-w-[88%] rounded-liarline border border-forensic-500 bg-ink-850/95 p-3 backdrop-blur-sm" role="status" aria-live="polite">
               <p className="font-mono text-[11px] font-bold uppercase text-forensic-500">{dictionary.ui.analyzingResponse}</p>
               <p className="mt-2 text-[14px] text-text-400">{dictionary.ui.thinkingLine}</p>
+              <ScenarioInsertPanel id="first_ai_hesitation" label={dictionary.ui.analyzingResponse} caption={dictionary.ui.thinkingLine} />
             </div>
           )}
         </div>
@@ -396,6 +483,7 @@ function InterrogationScreen() {
               type="button"
               disabled={pendingQuestion}
               onClick={() => void submit(question)}
+              data-testid="suggested-question-button"
               className="min-h-11 rounded-liarline border border-line-500 bg-ink-800 px-3 py-2 text-left text-[14px] font-bold leading-5 text-text-50 disabled:text-text-600 focus:outline-none focus:ring-2 focus:ring-cyan-400"
             >
               <span className="mb-1 block font-mono text-[10px] font-bold uppercase text-forensic-500">{dictionary.ui.questionActionCost}</span>
@@ -416,13 +504,14 @@ function InterrogationScreen() {
             maxLength={state.rules.maxQuestionChars}
             disabled={pendingQuestion}
             aria-label={dictionary.ui.customQuestionAria}
+            data-testid="custom-question-input"
             className="min-h-11 min-w-0 rounded-liarline border border-line-500 bg-ink-850 px-3 text-[15px] text-text-50 outline-none focus:ring-2 focus:ring-cyan-400"
           />
-          <SecondaryButton type="button" onClick={() => setNotebookOpen(true)} aria-label={dictionary.ui.openNotebook} title={dictionary.ui.openNotebook}>
+          <SecondaryButton type="button" onClick={() => setNotebookOpen(true)} aria-label={dictionary.ui.openNotebook} title={dictionary.ui.openNotebook} className={BUTTON_ROLE_SYSTEM.notebook.className}>
             <BookOpen className="h-5 w-5" />
             <span className="sr-only">{dictionary.ui.openNotebook}</span>
           </SecondaryButton>
-          <PrimaryButton type="submit" disabled={pendingQuestion || !customQuestion.trim()} aria-label={dictionary.ui.sendQuestion}>
+          <PrimaryButton type="submit" disabled={pendingQuestion || !customQuestion.trim()} aria-label={dictionary.ui.sendQuestion} className={`${BUTTON_ROLE_SYSTEM.send.className} ${pendingQuestion ? BUTTON_FEEDBACK_STATES.waitingAi : ""}`}>
             <span className="sr-only">{dictionary.ui.sendQuestion} · {dictionary.ui.questionActionCost}</span>
             <Send className="h-5 w-5" />
           </PrimaryButton>
@@ -435,7 +524,7 @@ function InterrogationScreen() {
             </p>
             {!accusationReady && (
               <p className="mt-1 font-mono text-[10px] uppercase text-signal-500">
-                {dictionary.ui.accuseLocked(state.transcript.length, state.rules.minimumQuestionsBeforeAccusation)}
+                {dictionary.ui.accuseLocked(countedTranscriptForAccusation, state.rules.minimumQuestionsBeforeAccusation)}
               </p>
             )}
           </div>
@@ -443,7 +532,8 @@ function InterrogationScreen() {
             type="button"
             onClick={goAccuse}
             disabled={!accusationReady}
-            className="accusation-entry-button min-h-11 rounded-liarline border border-signal-500 px-3 font-mono text-[11px] font-bold uppercase text-signal-500 disabled:border-line-700 disabled:text-text-600 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            data-testid="accusation-entry-button"
+            className={`accusation-entry-button min-h-11 rounded-liarline border border-signal-500 px-3 font-mono text-[11px] font-bold uppercase text-signal-500 disabled:border-line-700 disabled:text-text-600 focus:outline-none focus:ring-2 focus:ring-cyan-400 ${BUTTON_ROLE_SYSTEM.accuse.className} ${accusationReady ? BUTTON_FEEDBACK_STATES.contradiction : BUTTON_FEEDBACK_STATES.lockedAccusation}`}
           >
             {dictionary.ui.accuse}
           </button>
@@ -461,16 +551,17 @@ function AccusationScreen() {
   const unlockedClues = state.playerNotebook.unlockedClueIds
     .map((clueId) => state.clues[clueId] ? localizeClue(state.clues[clueId], locale) : null)
     .filter((clue): clue is NonNullable<typeof clue> => Boolean(clue));
-  const [accusedSuspectId, setAccusedSuspectId] = useState(suspects[0]?.suspectId || "");
-  const [selectedMotiveId, setSelectedMotiveId] = useState(motives[0]?.[0] || "");
+  const [accusedSuspectId, setAccusedSuspectId] = useState("");
+  const [selectedMotiveId, setSelectedMotiveId] = useState("");
   const [selectedEvidenceClueIds, setSelectedEvidenceClueIds] = useState<string[]>([]);
   const [acknowledgedRisk, setAcknowledgedRisk] = useState(false);
   const evidenceChainReady = selectedEvidenceClueIds.length >= 2;
+  const canSubmitAccusation = Boolean(acknowledgedRisk && accusedSuspectId && selectedMotiveId);
 
   return (
-    <div className="accusation-risk-screen min-h-[100dvh]">
+    <div className="accusation-risk-screen final-risk-stage min-h-[100dvh]">
       <TopStrip state={state} label={dictionary.ui.finalAccusation} locale={locale} onRestart={resetGame} />
-      <section className="space-y-5 px-4 py-5 pb-[calc(var(--safe-bottom)+96px)]">
+      <section className="space-y-5 px-4 py-5 pb-[calc(var(--safe-bottom)+260px)]">
         <div className="flex justify-end">
           <LanguageToggle locale={locale} setLocale={setLocale} />
         </div>
@@ -499,11 +590,16 @@ function AccusationScreen() {
               {!acknowledgedRisk && (
                 <p className="mt-2 font-mono text-[10px] font-bold uppercase text-text-400">{dictionary.ui.submitDisabledRisk}</p>
               )}
+              {acknowledgedRisk && !canSubmitAccusation && (
+                <p className="mt-2 font-mono text-[10px] font-bold uppercase text-signal-500">{dictionary.ui.accusationMissingSelection}</p>
+              )}
             </div>
           </div>
         </Panel>
 
         <Panel title={dictionary.ui.proofChecks} icon={<Check className="h-5 w-5 text-forensic-500" />}>
+          <ScenarioInsertPanel id="accusation_risk" label={dictionary.ui.finalAccusation} caption={dictionary.ui.finalSubmitRisk} />
+          <div className="final-proof-ledger">
           <div className="grid gap-2">
             <div className="flex items-center justify-between rounded-liarline border border-line-700 bg-ink-900 p-3">
               <span className="font-mono text-[11px] font-bold uppercase text-text-400">{dictionary.ui.proofSuspect}</span>
@@ -532,6 +628,7 @@ function AccusationScreen() {
               <p className="mt-1 text-[13px] leading-5 text-text-300">{dictionary.ui.selectedEvidenceWarning}</p>
             </div>
           </div>
+          </div>
         </Panel>
         <Panel title={dictionary.ui.culpritStep} icon={<Gavel className="h-5 w-5 text-signal-500" />}>
           <div className="grid grid-cols-2 gap-3">
@@ -540,6 +637,8 @@ function AccusationScreen() {
                 key={suspect.suspectId}
                 selected={accusedSuspectId === suspect.suspectId}
                 onClick={() => setAccusedSuspectId(suspect.suspectId)}
+                ariaLabel={localizeSuspect(suspect, locale).displayName}
+                testId={`accuse-suspect-${suspect.suspectId}`}
               >
                 {localizeSuspect(suspect, locale).displayName}
               </ChoiceButton>
@@ -550,7 +649,13 @@ function AccusationScreen() {
         <Panel title={dictionary.ui.motiveStep} icon={<AlertTriangle className="h-5 w-5 text-forensic-500" />}>
           <div className="grid gap-2">
             {motives.map(([motiveId, motive]) => (
-              <ChoiceButton key={motiveId} selected={selectedMotiveId === motiveId} onClick={() => setSelectedMotiveId(motiveId)}>
+              <ChoiceButton
+                key={motiveId}
+                selected={selectedMotiveId === motiveId}
+                onClick={() => setSelectedMotiveId(motiveId)}
+                ariaLabel={motive.label}
+                testId={`accuse-motive-${motiveId}`}
+              >
                 {motive.label}
               </ChoiceButton>
             ))}
@@ -570,6 +675,8 @@ function AccusationScreen() {
                       selected ? current.filter((id) => id !== clue.clueId) : [...current, clue.clueId]
                     )
                   }
+                  ariaLabel={clue.publicText}
+                  testId={`accuse-evidence-${clue.clueId}`}
                 >
                   <span className="block font-mono text-[10px] uppercase text-text-400">
                     {dictionary.ui.evidenceType}: {dictionary.evidenceTypes[clue.evidenceType]}
@@ -587,7 +694,7 @@ function AccusationScreen() {
       </section>
 
       <div className="mobile-action-dock fixed inset-x-0 z-40 mx-auto grid max-w-[430px] grid-cols-2 gap-3 border-t border-line-700 bg-ink-900/95 p-4 pb-[var(--safe-bottom)] backdrop-blur">
-        <SecondaryButton onClick={() => setNotebookOpen(true)} aria-label={dictionary.ui.openNotebook}>
+        <SecondaryButton onClick={() => setNotebookOpen(true)} aria-label={dictionary.ui.openNotebook} className={BUTTON_ROLE_SYSTEM.notebook.className}>
           <BookOpen className="mr-2 inline h-5 w-5" />
           {dictionary.ui.notebook}
         </SecondaryButton>
@@ -604,9 +711,10 @@ function AccusationScreen() {
         )}
         <button
           type="button"
-          disabled={!acknowledgedRisk}
+          disabled={!canSubmitAccusation}
           onClick={() => submitFinalAccusation({ accusedSuspectId, selectedMotiveId, selectedEvidenceClueIds })}
-          className="final-accusation-submit col-span-2 min-h-11 rounded-liarline border border-signal-500 bg-signal-500 px-4 py-3 text-[15px] font-bold text-text-50 shadow-signal disabled:border-line-700 disabled:bg-ink-800 disabled:text-text-600 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          data-testid="final-accusation-submit"
+          className={`final-accusation-submit col-span-2 min-h-11 rounded-liarline border border-signal-500 bg-signal-500 px-4 py-3 text-[15px] font-bold text-text-50 shadow-signal disabled:border-line-700 disabled:bg-ink-800 disabled:text-text-600 focus:outline-none focus:ring-2 focus:ring-cyan-400 ${BUTTON_ROLE_SYSTEM.finalSubmit.className} ${BUTTON_FEEDBACK_STATES.finalRisk} ${MICRO_EVENT_SYSTEM.finalAccusation.className}`}
         >
           {acknowledgedRisk ? dictionary.ui.submitAccusation : dictionary.ui.submitDisabledRisk}
         </button>
@@ -677,7 +785,7 @@ function DeductionStatusPanel({
       </div>
 
       {triggeredContradictions.length > 0 && (
-        <div className="contradiction-action-card mt-4 rounded-liarline border border-signal-500 bg-signal-500/10 p-3 shadow-signal" aria-live="polite">
+        <div className={`contradiction-action-card mt-4 rounded-liarline border border-signal-500 bg-signal-500/10 p-3 shadow-signal ${MICRO_EVENT_SYSTEM.contradictionFound.className}`} aria-live="polite">
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-signal-500" />
             <div className="min-w-0">
@@ -686,6 +794,7 @@ function DeductionStatusPanel({
               <p className="mt-2 text-[13px] leading-5 text-text-300">{dictionary.ui.contradictionActionBody}</p>
             </div>
           </div>
+          <ScenarioInsertPanel id="contradiction_reveal" label={dictionary.ui.contradictionFound} caption={dictionary.ui.contradictionActionBody} />
           <button
             type="button"
             onClick={onOpenNotebook}
@@ -781,14 +890,14 @@ function ResolutionScreen() {
   const missedOpportunities = outcome === "perfect_win" ? [dictionary.ui.missedOpportunityPerfect] : dictionary.missedOpportunities;
 
   return (
-    <div className="resolution-complete-screen min-h-[100dvh]">
+    <div className="resolution-complete-screen resolution-verdict-stage min-h-[100dvh]">
       <TopStrip state={state} label={dictionary.phaseLabels.resolution} locale={locale} onRestart={() => resetGame()} />
       <section className="space-y-5 px-4 py-5 pb-[calc(var(--safe-bottom)+88px)]">
         <div className="flex justify-end">
           <LanguageToggle locale={locale} setLocale={setLocale} />
         </div>
         <CaseProgressRail state={state} locale={locale} />
-        <div className="truth-summary-card rounded-liarline border border-line-500 bg-ink-850 p-5 shadow-terminal">
+        <div className="truth-summary-card verdict-reconstruction-card rounded-liarline border border-line-500 bg-ink-850 p-5 shadow-terminal">
           <p className={`font-mono text-[12px] font-bold uppercase ${tone}`}>{title}</p>
           <h1 className="mt-2 text-[28px] font-bold leading-8">
             {outcome ? dictionary.resolutionText[outcome] : state.resolution.finalText}
@@ -799,10 +908,11 @@ function ResolutionScreen() {
             <p><span className="text-text-400">{dictionary.ui.evidenceScore}:</span> {state.resolution.evidenceScore}/2</p>
           </div>
         </div>
+        <ScenarioInsertPanel id="resolution" label={dictionary.ui.resolution} caption={dictionary.ui.truthTimeline} />
 
         {detectiveRating && (
           <Panel title={dictionary.ui.detectiveRating} icon={<Fingerprint className="h-5 w-5 text-forensic-500" />}>
-            <div className="rating-stamp rounded-liarline border border-forensic-500 p-3">
+            <div className={`rating-stamp rounded-liarline border border-forensic-500 p-3 ${MICRO_EVENT_SYSTEM.resolutionRating.className}`}>
               <p className="font-mono text-[12px] font-bold uppercase text-forensic-500">{detectiveRating.title}</p>
               <p className="mt-2 text-[14px] leading-5 text-text-100">{detectiveRating.body}</p>
             </div>
@@ -858,10 +968,12 @@ function ResolutionScreen() {
             ))}
           </div>
         </Panel>
+
+        <FeedbackPanel state={state} locale={locale} />
       </section>
 
       <div className="mobile-action-dock fixed inset-x-0 z-40 mx-auto max-w-[430px] border-t border-line-700 bg-ink-900/95 p-4 pb-[var(--safe-bottom)] backdrop-blur">
-        <PrimaryButton onClick={resetGame} className="restart-case-button w-full">
+        <PrimaryButton onClick={resetGame} className={`restart-case-button w-full ${BUTTON_ROLE_SYSTEM.restart.className}`}>
           <RotateCcw className="mr-2 inline h-5 w-5" />
           {dictionary.ui.newCase}
         </PrimaryButton>
@@ -870,15 +982,100 @@ function ResolutionScreen() {
   );
 }
 
-function LanguageToggle({ locale, setLocale }: { locale: "en" | "ru"; setLocale: (locale: "en" | "ru") => void }) {
+function FeedbackPanel({ state, locale }: { state: GameState; locale: "en" | "ru" }) {
+  const dictionary = getDictionary(locale);
+  const [category, setCategory] = useState<FeedbackCategory>("notebook_clarity");
+  const [note, setNote] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  function submitFeedback() {
+    const viewport =
+      typeof window === "undefined" ? "unknown" : `${window.innerWidth}x${window.innerHeight}`;
+    const entry = createFeedbackEntry({
+      category,
+      note,
+      locale,
+      outcome: state.resolution.outcome,
+      detectiveRating: state.resolution.detectiveRating,
+      transcriptLength: state.transcript.length,
+      viewport
+    });
+    saveFeedbackEntry(entry);
+    setNote("");
+    setSaved(true);
+  }
+
   return (
-    <div className="grid grid-cols-2 overflow-hidden rounded-liarline border border-line-700 bg-ink-900 font-mono text-[11px] font-bold uppercase">
-      {(["ru", "en"] as const).map((option) => (
+    <Panel title={dictionary.ui.feedbackTitle} icon={<MessageSquare className="h-5 w-5 text-cyan-400" />}>
+      <div data-testid="feedback-panel" className="space-y-3">
+        <p className="text-[13px] leading-5 text-text-300">{dictionary.ui.feedbackBody}</p>
+        <div className="grid grid-cols-2 gap-2">
+          {FEEDBACK_CATEGORIES.map((item) => (
+            <button
+              key={item.category}
+              type="button"
+              onClick={() => {
+                setCategory(item.category);
+                setSaved(false);
+              }}
+              aria-pressed={category === item.category}
+              data-testid={`feedback-category-${item.category}`}
+              className={`min-h-11 rounded-liarline border px-2 py-2 text-left text-[12px] font-bold leading-4 focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
+                category === item.category
+                  ? "border-cyan-400 bg-cyan-400 text-ink-950"
+                  : "border-line-700 bg-ink-900 text-text-100"
+              }`}
+            >
+              {dictionary.ui.feedbackCategories[item.category]}
+            </button>
+          ))}
+        </div>
+        <textarea
+          value={note}
+          onChange={(event) => {
+            setNote(event.currentTarget.value.slice(0, 280));
+            setSaved(false);
+          }}
+          data-testid="feedback-note"
+          aria-label={dictionary.ui.feedbackNoteAria}
+          placeholder={dictionary.ui.feedbackPlaceholder}
+          maxLength={280}
+          className="min-h-24 w-full resize-none rounded-liarline border border-line-700 bg-ink-950 p-3 text-[14px] leading-5 text-text-100 placeholder:text-text-500 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+        />
+        <button
+          type="button"
+          onClick={submitFeedback}
+          data-testid="feedback-submit"
+          className="min-h-11 w-full rounded-liarline border border-cyan-400 bg-cyan-400 px-3 py-3 text-[14px] font-bold text-ink-950 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+        >
+          {dictionary.ui.feedbackSubmit}
+        </button>
+        {saved && (
+          <p data-testid="feedback-saved" className="rounded border border-forensic-500/60 bg-forensic-500/10 px-3 py-2 font-mono text-[10px] font-bold uppercase text-forensic-500">
+            {dictionary.ui.feedbackSaved}
+          </p>
+        )}
+      </div>
+    </Panel>
+  );
+}
+
+function LanguageToggle({ locale, setLocale }: { locale: "en" | "ru"; setLocale: (locale: "en" | "ru") => void }) {
+  const dictionary = getDictionary(locale);
+  return (
+    <div
+      className="grid grid-cols-2 overflow-hidden rounded-liarline border border-line-700 bg-ink-900 font-mono text-[11px] font-bold uppercase"
+      aria-label={dictionary.localeName}
+    >
+      {(["en", "ru"] as const).map((option) => (
         <button
           key={option}
           type="button"
           onClick={() => setLocale(option)}
-          className={`min-h-8 px-3 focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
+          aria-pressed={locale === option}
+          aria-label={option === "en" ? "Switch language to English" : "Переключить язык на русский"}
+          data-testid={`locale-toggle-${option}`}
+          className={`min-h-11 min-w-11 px-3 focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
             locale === option ? "bg-forensic-500 text-ink-950" : "text-text-400"
           }`}
         >
@@ -964,11 +1161,56 @@ function Panel({ title, icon, children }: { title: string; icon: React.ReactNode
   );
 }
 
-function ChoiceButton({ selected, onClick, children }: { selected: boolean; onClick: () => void; children: React.ReactNode }) {
+function ScenarioInsertPanel({
+  id,
+  label,
+  caption,
+  className = ""
+}: {
+  id: ScenarioInsertId;
+  label: string;
+  caption: string;
+  className?: string;
+}) {
+  const insert = getScenarioInsert(id);
+
+  return (
+    <aside
+      className={`scenario-insert-panel ${insert.className} ${className} mt-3 grid grid-cols-[72px_1fr] gap-3 rounded-liarline border border-line-700 bg-ink-900/82 p-2`}
+      data-scenario={id}
+      aria-label={label}
+    >
+      <div className="relative h-[72px] w-[72px] overflow-hidden rounded border border-line-700 bg-ink-950" style={{ position: "relative" }}>
+        <Image src={insert.assetPath} alt={label} fill sizes="72px" className="object-cover" />
+      </div>
+      <div className="min-w-0 self-center">
+        <p className="font-mono text-[10px] font-bold uppercase text-forensic-500">{label}</p>
+        <p className="mt-1 line-clamp-3 text-[12px] font-bold leading-4 text-text-200">{caption}</p>
+      </div>
+    </aside>
+  );
+}
+
+function ChoiceButton({
+  selected,
+  onClick,
+  children,
+  ariaLabel,
+  testId
+}: {
+  selected: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  ariaLabel?: string;
+  testId?: string;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={selected}
+      aria-label={ariaLabel}
+      data-testid={testId}
       className={`min-h-11 rounded-liarline border p-3 text-left text-[14px] font-bold leading-5 focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
         selected ? "border-forensic-500 bg-forensic-500 text-ink-950" : "border-line-700 bg-ink-800 text-text-50"
       }`}

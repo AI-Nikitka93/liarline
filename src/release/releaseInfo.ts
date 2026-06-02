@@ -107,3 +107,38 @@ export const phase9EndReview = {
   closed: "Launch readiness now has hotfix criteria, freshness review, fast-decay knowledge ownership, changelog discipline, parity checks, rehearsal gates, and no open phase blockers.",
   next: "Phase 10 starts from measured playthrough observations and first-minute hook checks before any larger full-game expansion."
 } as const;
+
+export const phase10AnchorReview = {
+  status: "Anchor OK",
+  coreValue: "AI suspects can lie, but only evidence can convict.",
+  lastOrdinaryItems: [
+    "T199",
+    "T200",
+    "T201",
+    "T202",
+    "T203",
+    "T204",
+    "T205",
+    "T206",
+    "T207",
+    "T208",
+    "T209",
+    "T210",
+    "T211",
+    "T212",
+    "T213",
+    "T214",
+    "T215",
+    "T216",
+    "T217",
+    "T218"
+  ],
+  noDrift: true
+} as const;
+
+export const phase10EndReview = {
+  phase: 10,
+  status: "closed",
+  closed: "Phase 10 closes post-release validation, first follow-up backlog, future-case criteria, update rules, asset hygiene, design retrospective, memory contract, no-drift checklist, and full-game direction.",
+  next: "MASTER TODO closed. Next work should start from real player or judge feedback, not from speculative expansion."
+} as const;

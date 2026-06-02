@@ -2,6 +2,35 @@
 
 Purpose: preserve a known-good recovery point for the Devpost AI Game Week release package.
 
+## Current Anchor Restore Point
+
+Restore point name: `PHASE1_T001_T020_ANCHOR_OK`
+
+Status covered: `PHASE1_T001_T020_ANCHOR_OK` / `PHASE2_T021_T030_CLOSED`.
+
+What it includes:
+
+- Active `docs/MASTER_TODO.md` with T001-T020 verified as directionally aligned and T021-T030 closed.
+- Phase 1 source-of-truth, contest, provider, public-claim, backup-AI, skill-stack, codebase-intelligence, and risk-baseline contracts.
+- Phase 2 AI-quality contracts for failure modes, suspect rubrics, judge-route beats, voice distance, and "AI actor, not judge" boundaries.
+- Current `docs/AI_PROVIDER_STATUS_CURRENT.md` and `docs/AI_SUSPECT_VOICE_RUN_CURRENT.md` evidence surfaces.
+
+Integrity check:
+
+```powershell
+npm run test:win-push-phase1
+npm run test:win-push-phase1-readiness
+npm run test:win-push-phase2-ai-quality
+npm run test:judge-readiness
+git status --short
+```
+
+Rollback target if the next 20 TODO items break direction or AI quality:
+
+- Return to the tracked diff/state where `docs/STATE.md` reports `PHASE2_T021_T030_CLOSED`.
+- Re-run the integrity check above.
+- External URLs are not part of this restore point and must be revalidated through strict judge readiness.
+
 ## Protected State
 
 - Public playable URL: https://liarline.vercel.app

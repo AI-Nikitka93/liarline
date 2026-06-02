@@ -11,3 +11,5 @@ npm-debug.log*
 model-benchmark-results*.json
 liarline-dock-current.png
 public/ChatGPT Image*.png
+docs/videos/raw-v1/*-raw.webm
+docs/videos/raw-v1/video-*/

@@ -16,24 +16,26 @@ const [
   contest,
   provider,
   submission,
-  acceptance,
-  playtest,
+  release,
+  playstyleGate,
   demoRoute,
-  todo
+  activeTodo
 ] = await Promise.all([
   text("package.json"),
   text("docs/CONTEST_REQUIREMENTS_2026-05-06.md"),
-  text("docs/AI_PROVIDER_STATUS_2026-05-06.md"),
+  text("docs/AI_PROVIDER_STATUS_CURRENT.md"),
   text("docs/SUBMISSION.md"),
-  text("_archive/agent-memory/docs/RELEASE_ACCEPTANCE_CHECKLIST_2026-05-06.md"),
-  text("_archive/agent-memory/docs/PLAYTEST_STYLES_2026-05-06.md"),
+  text("docs/RELEASE.md"),
+  text("tools/test-playstyles.mjs"),
   text("tools/test-demo-route.mjs"),
-  text("_archive/agent-memory/docs/MASTER_TODO.md")
+  text("docs/MASTER_TODO.md")
 ]);
 
 const scripts = JSON.parse(packageJson).scripts;
 assert.equal(scripts["test:playstyles"], "tsx tools/test-playstyles.mjs");
 assert.equal(scripts["test:release-readiness"], "node tools/test-release-readiness.mjs");
+assert.equal(scripts["test:production-layout"], "node tools/test-production-layout.mjs");
+assert.equal(scripts["test:demo-video-package"], "node tools/test-demo-video-package.mjs");
 
 includesAll(contest, [
   "Closed scope: T013, T155.",
@@ -47,14 +49,15 @@ includesAll(contest, [
 ], "contest requirements");
 
 includesAll(provider, [
-  "Closed scope: T014, T156.",
+  "Closed scope: T014-T016.",
   "https://status.groq.com/",
-  "Fully operational",
+  "fully operational",
   "llama-3.1-8b-instant",
   "llama-3.3-70b-versatile",
   "30 RPM",
   "429",
-  "fallback"
+  "fallback",
+  "No provider switch now"
 ], "provider status");
 
 includesAll(submission, [
@@ -70,25 +73,22 @@ includesAll(submission, [
   "Do not claim yet"
 ], "submission");
 
-includesAll(acceptance, [
-  "Closed scope: T152.",
-  "Game release-pass",
-  "AI release-pass",
-  "UI release-pass",
-  "Mobile release-pass",
-  "Localization release-pass",
-  "Fallback release-pass",
-  "No-go blockers",
-  "npm run build"
-], "acceptance");
+includesAll(release, [
+  "Judge readiness",
+  "Current risk baseline",
+  "npm run build",
+  "npm run test:judge-readiness",
+  "npm run test:demo-video-package",
+  "Consciously excluded future scope",
+  "Fallback"
+], "release");
 
-includesAll(playtest, [
-  "Closed scope: T151.",
+includesAll(playstyleGate, [
   "Rushed Player",
   "Careful Player",
   "Mistaken Player",
   "AI suspects can lie, but only evidence can convict"
-], "playtest");
+], "playstyle gate");
 
 includesAll(demoRoute, [
   "first answer",
@@ -97,17 +97,18 @@ includesAll(demoRoute, [
   "resolution"
 ], "demo route script");
 
-includesAll(todo, [
-  "[x] T151",
-  "[x] T152",
-  "[x] T153",
-  "[x] T154",
-  "[x] T155",
-  "[x] T156",
-  "[x] T157",
-  "[x] T158",
-  "[x] T159",
-  "[x] T160"
-], "master todo closure");
+includesAll(activeTodo, [
+  "[x] T001",
+  "[x] T002",
+  "[x] T003",
+  "[x] T004",
+  "[x] T005",
+  "[x] T006",
+  "[x] T007",
+  "[x] T008",
+  "[x] T009",
+  "[x] T010",
+  "docs/MASTER_TODO.md` становится живым мастер-планом"
+], "active master todo closure");
 
 console.log("release readiness checks passed");

@@ -11,9 +11,17 @@ test("playable link opens on mobile browser without app download surface", async
   page.on("pageerror", (error) => browserErrors.push(error.message));
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+
+  await expect(page.locator(".language-entry-screen")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Русский", exact: false })).toBeVisible();
+  await expect(page.getByRole("button", { name: "English", exact: false })).toBeVisible();
+  await page.getByRole("button", { name: "English", exact: false }).click();
 
   await expect(page.locator(".start-interrogation-surface")).toBeVisible();
+  await expect(page.locator(".onboarding-rules-card")).toContainText("How to play");
+  await expect(page.locator(".onboarding-rules-card")).toContainText("Each question costs 1 AP");
+  await expect(page.locator(".onboarding-rules-card")).toContainText("Suspicion is pressure");
   await expect(page.locator(".first-question-cta")).toBeVisible();
   await expect(page.locator(".mobile-action-dock")).toBeVisible();
   await expect(page.locator("a[download]")).toHaveCount(0);
@@ -63,7 +71,7 @@ test("first minute shows AI gameplay hook without external explanation", async (
     window.localStorage.setItem("liarline.locale.v1", "en");
     window.localStorage.setItem("liarline.save.v1", JSON.stringify(seededState));
   }, state);
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
 
   await expect(page.locator(".ai-answer-badges")).toContainText("Live answer");
   await expect(page.locator(".contradiction-reveal-stage")).toBeVisible();
@@ -94,7 +102,7 @@ test("release environment can render full playthrough resolution", async ({ page
     window.localStorage.setItem("liarline.locale.v1", "en");
     window.localStorage.setItem("liarline.save.v1", JSON.stringify(seededState));
   }, state);
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
 
   await expect(page.getByText("CASE CLOSED", { exact: false })).toBeVisible();
   await expect(page.getByText("Detective work", { exact: false })).toBeVisible();

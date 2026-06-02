@@ -22,7 +22,8 @@ This file keeps only public-facing product and engineering decisions. Full inter
 
 - Next.js App Router is the application shell.
 - The client calls only the internal `/api/npc-turn` route.
-- Groq credentials are read from `process.env.GROQ_API_KEY`.
+- Groq credentials are read from server env only: `GROQ_API_KEY`, optional `GROQ_API_KEYS`, and optional numbered `GROQ_API_KEY_1...N`.
+- `/api/npc-turn` fails over to the next configured Groq key on rate limits, temporary provider errors, or invalid/revoked-key responses.
 - LocalStorage is the save mechanism for the hackathon build.
 - RU/EN localization is handled through separated dictionaries.
 

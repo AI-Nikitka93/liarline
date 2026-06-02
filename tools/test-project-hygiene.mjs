@@ -26,6 +26,36 @@ for (const required of ["_archive/", "test-results/", ".playwright-mcp/", "liarl
   assert.ok(gitignore.includes(required), `.gitignore must include ${required}`);
   assert.ok(npmignore.includes(required), `.npmignore must include ${required}`);
 }
+
+for (const required of ["docs/videos/raw-v1/*-raw.webm", "docs/videos/raw-v1/video-*/"]) {
+  assert.ok(gitignore.includes(required), `.gitignore must include ${required}`);
+  assert.ok(npmignore.includes(required), `.npmignore must include ${required}`);
+}
+
+async function gitCheckIgnored(file) {
+  try {
+    await execFileAsync("git", ["check-ignore", "-q", file], { timeout: 120000, windowsHide: true });
+    return true;
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === 1) return false;
+    throw error;
+  }
+}
+
+for (const ignoredCapture of [
+  "docs/videos/raw-v1/liarline-demo-en-v1-raw.webm",
+  "docs/videos/raw-v1/liarline-demo-ru-v1-raw.webm",
+  "docs/videos/raw-v1/video-en/capture.webm",
+  "docs/videos/raw-v1/video-ru/capture.webm"
+]) {
+  assert.equal(await gitCheckIgnored(ignoredCapture), true, `raw demo capture must be git-ignored: ${ignoredCapture}`);
+}
+for (const releaseVideo of [
+  "docs/videos/liarline-demo-en-v1.mp4",
+  "docs/videos/liarline-demo-ru-v1.mp4"
+]) {
+  assert.equal(await gitCheckIgnored(releaseVideo), false, `upload-ready release video must not be git-ignored: ${releaseVideo}`);
+}
 assert.equal(existsSync("liarline-dock-current.png"), false, "root screenshot draft must be archived");
 
 const srcText = (await Promise.all((await walk("src")).map((file) => readFile(file, "utf8")))).join("\n");

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security reports
+    url: https://github.com/AI-Nikitka93/liarline/security
+    about: Do not report vulnerabilities or leaked secrets in public issues. Use the security policy instead.
+  - name: Playable release
+    url: https://liarline.vercel.app
+    about: Try the current public build before filing a gameplay issue.

@@ -1,5 +1,20 @@
 import assert from "node:assert/strict";
-import { dictionaries } from "../src/i18n/dictionaries.ts";
+import { readFileSync } from "node:fs";
+import { DEFAULT_LOCALE, dictionaries } from "../src/i18n/dictionaries.ts";
+
+const gameComponent = readFileSync(new URL("../src/components/LiarlineGame.tsx", import.meta.url), "utf8");
+const gameStore = readFileSync(new URL("../src/state/GameStore.tsx", import.meta.url), "utf8");
+const rootLayout = readFileSync(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
+assert.ok(gameComponent.indexOf("Choose language") < gameComponent.indexOf("Выберите язык"));
+assert.ok(gameComponent.indexOf("Detective game about interrogating AI suspects") < gameComponent.indexOf("Детективная игра про допрос"));
+assert.ok(gameComponent.indexOf("English") < gameComponent.indexOf("Русский"));
+assert.ok(gameComponent.includes('(["en", "ru"] as const).map((option) => ('));
+assert.ok(rootLayout.includes('<html lang="en"'));
+assert.ok(gameStore.includes("document.documentElement.lang = locale"));
+assert.equal(DEFAULT_LOCALE, "en");
+const savedLocaleBlock = gameStore.slice(gameStore.indexOf("const savedLocale"), gameStore.indexOf("const raw"));
+assert.ok(!savedLocaleBlock.includes("setHasSelectedLocale(true)"));
+assert.ok(gameStore.includes('setHasSelectedLocale(parsed.phase !== "briefing")'));
 
 for (const locale of ["en", "ru"]) {
   const dictionary = dictionaries[locale];
@@ -33,6 +48,8 @@ for (const locale of ["en", "ru"]) {
   assert.ok(dictionary.ui.proofReady.length > 8);
   assert.ok(dictionary.ui.proofIncomplete.length > 8);
   assert.ok(dictionary.ui.selectedEvidenceWarning.length > 30);
+  assert.ok(!/chain ready|цепочка улик готова/i.test(dictionary.ui.proofReady));
+  assert.ok(/verdict still checks|итог всё равно провер/i.test(dictionary.ui.selectedEvidenceWarning));
 
   const riskCopy = `${dictionary.ui.finalSubmitRisk} ${dictionary.ui.acknowledgeRiskLabel} ${dictionary.ui.submitDisabledRisk}`.toLowerCase();
   assert.ok(riskCopy.includes(locale === "ru" ? "финал" : "final"));
@@ -72,6 +89,14 @@ for (const locale of ["en", "ru"]) {
   assert.ok(dictionary.ui.visualThesisBadge.length <= 24);
   assert.ok(dictionary.ui.briefingPremise.length <= (locale === "ru" ? 95 : 85));
   assert.ok(dictionary.ui.firstQuestionSetup.length <= (locale === "ru" ? 95 : 85));
+
+  const ivoQuestionCopy = [
+    ...dictionary.questions.base({}, { suspectId: "suspect_ivo" }),
+    ...dictionary.questions.pressure({}, { suspectId: "suspect_ivo" }, null),
+    ...dictionary.questions.final({}, { suspectId: "suspect_ivo" })
+  ].join(" ");
+  assert.ok(!/What detail are you leaving out|Give me one detail|Какую деталь вы недоговариваете|Назовите одну деталь/i.test(ivoQuestionCopy));
+  assert.ok(ivoQuestionCopy.includes(locale === "ru" ? "21:10" : "21:10"));
 }
 
 console.log("ui copy tests passed");

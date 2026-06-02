@@ -24,6 +24,9 @@ Key commands:
 - `npm run test:visual-dna` - verify visual evidence, pattern boundaries, visual elements, and implemented CSS/UI classes.
 - `npm run test:visual-assets` - verify current PNG assets, dimensions, size budget, and audit coverage.
 - `npm run test:demo-route` - verify the reproducible judge/demo AI route through first answer, contradiction, and persona shift.
+- `npm run test:win-push-phase2-ai-quality` - verify T021-T030 anchor, phase-end, AI failure-mode, voice-rubric, voice-distance, and actor-not-judge contracts.
+- `npm run test:win-push-phase2-quarantine` - verify T031-T040 playable-language, AI-anchor, filler/leak/repeat quarantine, fallback-impact, transcript-audit, review-checklist, and latency contracts.
+- `npm run test:win-push-phase3-provider-proof` - verify T041-T070 provider decisions, secret-safe matrix, live AI regressions, proof-chain fairness, accusation UX, ratings, outcomes, and motive parity.
 - `node sync_state.mjs` - regenerate `docs/state.json` from `docs/STATE.md`.
 
 Project memory:
@@ -32,10 +35,11 @@ Project memory:
 - `docs/SUBMISSION.md` - Devpost copy, demo route, AI-use explanation, and claim guardrails.
 - `docs/DECISIONS.md` - concise public product and engineering decisions.
 - `docs/CONTEST_REQUIREMENTS_2026-05-06.md` - current AI Game Week requirements and submission guardrails.
-- `docs/AI_PROVIDER_STATUS_2026-05-06.md` - current Groq model/rate-limit/fallback status.
+- `docs/AI_PROVIDER_STATUS_CURRENT.md` - current Groq model/rate-limit/fallback status.
 - `docs/GAME_ARCHITECTURE.md` - game architecture and AI contracts.
 - `docs/visual-spec.md` - visual direction and mobile design rules.
-- `_archive/agent-memory/docs/` - local-only archived master TODO, long research, anchor reviews, old execution plans, and detailed project history.
+- `docs/MASTER_TODO.md` - active win-push master plan for AI quality, button proof, visual polish, final submission, and post-launch resilience.
+- `_archive/agent-memory/docs/` - local-only archived research, anchor reviews, old execution plans, and detailed project history.
 - `MODEL_SELECTION.md` - benchmark-backed model decision.
 - `src/api/npc-turn.ts` - serverless Groq NPC-turn handler.
 - `src/ai/` - non-spoiler NPC performance contracts, prompt, response validation, fallback logic.

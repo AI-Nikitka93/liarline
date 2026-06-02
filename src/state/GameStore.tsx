@@ -22,9 +22,14 @@ import {
 } from "../game/gameEngine";
 import { FIRST_INTERROGATION_SUSPECT_ID } from "../game/seedCase";
 import { requestNpcTurn } from "../services/aiClient";
+import type { NpcTurnResult } from "../ai/contracts";
 
 const SAVE_KEY = "liarline.save.v1";
 const LOCALE_KEY = "liarline.locale.v1";
+
+function isTechnicalAiFailure(result: NpcTurnResult): boolean {
+  return result.source === "fallback";
+}
 
 type GameStoreValue = {
   state: GameState;
@@ -33,6 +38,7 @@ type GameStoreValue = {
   pendingQuestion: boolean;
   uiError: string | null;
   locale: Locale;
+  hasSelectedLocale: boolean;
   setLocale: (locale: Locale) => void;
   setSelectedSuspectId: (suspectId: string) => void;
   setNotebookOpen: (open: boolean) => void;
@@ -56,6 +62,7 @@ export function GameStoreProvider({ children }: { children: React.ReactNode }) {
   const [pendingQuestion, setPendingQuestion] = useState(false);
   const [uiError, setUiError] = useState<string | null>(null);
   const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
+  const [hasSelectedLocale, setHasSelectedLocale] = useState(false);
   const pendingQuestionRef = useRef(false);
   const runVersionRef = useRef(0);
   const currentRequestAbortRef = useRef<AbortController | null>(null);
@@ -64,10 +71,20 @@ export function GameStoreProvider({ children }: { children: React.ReactNode }) {
     getBrowserOutcomeMonitor()?.record(name, details);
   };
 
+  function applyTechnicalFallbackTurn(baseState: GameState, suspectId: string, questionText: string, result: NpcTurnResult) {
+    const fallbackState = applyNpcTurnResult(baseState, suspectId, questionText, result);
+    setState(fallbackState);
+    setUiError(getDictionary(locale).ui.connectionFallback);
+    recordOutcome("fallback_used", { reason: result.meta.fallbackReason || "unknown" });
+    recordOutcome("ai_fail", { reason: result.meta.fallbackReason || "unknown" });
+    return fallbackState;
+  }
+
   useEffect(() => {
     const savedLocale = window.localStorage.getItem(LOCALE_KEY);
     if (savedLocale === "en" || savedLocale === "ru") {
       setLocaleState(savedLocale);
+      setHasSelectedLocale(Boolean(savedLocale));
     }
 
     const raw = window.localStorage.getItem(SAVE_KEY);
@@ -77,6 +94,7 @@ export function GameStoreProvider({ children }: { children: React.ReactNode }) {
       if (isGameState(parsed)) {
         setState(parsed);
         setSelectedSuspectId(parsed.phase === "briefing" ? FIRST_INTERROGATION_SUSPECT_ID : Object.keys(parsed.suspects)[0] || FIRST_INTERROGATION_SUSPECT_ID);
+        setHasSelectedLocale(parsed.phase !== "briefing");
         return;
       }
       moveCorruptSave(raw);
@@ -90,7 +108,12 @@ export function GameStoreProvider({ children }: { children: React.ReactNode }) {
   }, [state]);
 
   useEffect(() => {
+    if (!hasSelectedLocale) return;
     window.localStorage.setItem(LOCALE_KEY, locale);
+  }, [hasSelectedLocale, locale]);
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
   }, [locale]);
 
   const value = useMemo<GameStoreValue>(
@@ -101,8 +124,10 @@ export function GameStoreProvider({ children }: { children: React.ReactNode }) {
       pendingQuestion,
       uiError,
       locale,
+      hasSelectedLocale,
       setLocale: (nextLocale) => {
         setLocaleState(nextLocale);
+        setHasSelectedLocale(true);
         setUiError(null);
       },
       setSelectedSuspectId: (suspectId) => {
@@ -148,21 +173,18 @@ export function GameStoreProvider({ children }: { children: React.ReactNode }) {
           if (requestRunVersion !== runVersionRef.current || requestController.signal.aborted) {
             return;
           }
+          if (isTechnicalAiFailure(result)) {
+            applyTechnicalFallbackTurn(interrogationState, FIRST_INTERROGATION_SUSPECT_ID, firstQuestion, result);
+            return;
+          }
           const nextState = applyNpcTurnResult(interrogationState, FIRST_INTERROGATION_SUSPECT_ID, firstQuestion, result);
           setState(nextState);
           recordOutcome("first_ai_answer", { source: result.source, latencyMs: result.meta.latencyMs });
-          if (result.source === "fallback") {
-            recordOutcome("fallback_used", { reason: result.meta.fallbackReason || "unknown" });
-            recordOutcome("ai_fail", { reason: result.meta.fallbackReason || "unknown" });
-          }
           if (!interrogationState.deduction.collapseTriggered && nextState.deduction.collapseTriggered) {
             recordOutcome("contradiction_reached", { contradictionId: nextState.deduction.guaranteedContradictionId });
           }
           if (nextState.deduction.collapseTriggered && nextState.deduction.collapseFocusSuspectId) {
             setSelectedSuspectId(nextState.deduction.collapseFocusSuspectId);
-          }
-          if (!result.ok) {
-            setUiError(getDictionary(locale).ui.connectionFallback);
           }
         } finally {
           if (requestRunVersion === runVersionRef.current) {
@@ -211,23 +233,20 @@ export function GameStoreProvider({ children }: { children: React.ReactNode }) {
           if (requestRunVersion !== runVersionRef.current || requestController.signal.aborted) {
             return;
           }
+          if (isTechnicalAiFailure(result)) {
+            applyTechnicalFallbackTurn(state, selectedSuspectId, questionText, result);
+            return;
+          }
           const nextState = applyNpcTurnResult(state, selectedSuspectId, questionText, result);
           setState(nextState);
           if (state.transcript.length === 0 && nextState.transcript.length > 0) {
             recordOutcome("first_ai_answer", { source: result.source, latencyMs: result.meta.latencyMs });
-          }
-          if (result.source === "fallback") {
-            recordOutcome("fallback_used", { reason: result.meta.fallbackReason || "unknown" });
-            recordOutcome("ai_fail", { reason: result.meta.fallbackReason || "unknown" });
           }
           if (!state.deduction.collapseTriggered && nextState.deduction.collapseTriggered) {
             recordOutcome("contradiction_reached", { contradictionId: nextState.deduction.guaranteedContradictionId });
           }
           if (!state.deduction.collapseTriggered && nextState.deduction.collapseTriggered && nextState.deduction.collapseFocusSuspectId) {
             setSelectedSuspectId(nextState.deduction.collapseFocusSuspectId);
-          }
-          if (!result.ok) {
-            setUiError(getDictionary(locale).ui.connectionFallback);
           }
         } finally {
           if (requestRunVersion === runVersionRef.current) {
@@ -280,7 +299,7 @@ export function GameStoreProvider({ children }: { children: React.ReactNode }) {
         setUiError(null);
       }
     }),
-    [locale, notebookOpen, pendingQuestion, selectedSuspectId, state, uiError]
+    [hasSelectedLocale, locale, notebookOpen, pendingQuestion, selectedSuspectId, state, uiError]
   );
 
   return <GameStoreContext.Provider value={value}>{children}</GameStoreContext.Provider>;

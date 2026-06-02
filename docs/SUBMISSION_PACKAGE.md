@@ -1,6 +1,6 @@
 # Liarline Submission Package
 
-Verification date: 2026-05-08.
+Verification date: 2026-05-09.
 
 Purpose: keep the Devpost package judge-ready without mixing local build truth with external submission fields.
 
@@ -10,6 +10,8 @@ Run this local package gate before publishing or updating the Devpost entry:
 
 ```bash
 npm run test:judge-readiness
+npm run test:contest-final-packet
+npm run test:win-push-phase7-submission
 ```
 
 The gate checks:
@@ -19,13 +21,14 @@ The gate checks:
 - README, release notes, contest requirements, and Devpost copy exist.
 - Browser tests can start the local mobile release server themselves.
 - Devpost-required external fields are named and validated when strict mode is enabled.
+- `docs/JUDGE_FINAL_PACKET_2026-05-08.md` stays aligned with the contest rules, demo route, paste-ready fields, and no-overclaim boundaries.
 
 Strict mode is the final submission check:
 
 ```bash
-LIARLINE_PUBLIC_URL=https://your-public-game-url.example \
-LIARLINE_GITHUB_URL=https://github.com/your-user/your-repo \
-LIARLINE_DEMO_VIDEO_URL=https://youtu.be/your-video \
+LIARLINE_PUBLIC_URL=https://liarline.vercel.app \
+LIARLINE_GITHUB_URL=https://github.com/AI-Nikitka93/liarline \
+LIARLINE_DEMO_VIDEO_URL="$REAL_UPLOADED_LIARLINE_DEMO_VIDEO_URL" \
 LIARLINE_STRICT_SUBMISSION=1 \
 npm run test:judge-readiness
 ```
@@ -33,9 +36,9 @@ npm run test:judge-readiness
 On Windows PowerShell:
 
 ```powershell
-$env:LIARLINE_PUBLIC_URL="https://your-public-game-url.example"
-$env:LIARLINE_GITHUB_URL="https://github.com/your-user/your-repo"
-$env:LIARLINE_DEMO_VIDEO_URL="https://youtu.be/your-video"
+$env:LIARLINE_PUBLIC_URL="https://liarline.vercel.app"
+$env:LIARLINE_GITHUB_URL="https://github.com/AI-Nikitka93/liarline"
+$env:LIARLINE_DEMO_VIDEO_URL=$env:REAL_UPLOADED_LIARLINE_DEMO_VIDEO_URL
 $env:LIARLINE_STRICT_SUBMISSION="1"
 npm run test:judge-readiness
 ```
@@ -61,9 +64,28 @@ Local proof:
 
 ```bash
 npm run build
+npm run test:demo-video-package
 npm run test:release-browser
+npm run test:production-layout
 npm run test:browser-smoke
 ```
+
+## Demo video package
+
+Required for Devpost: a public 1-3 minute video URL showing the current game.
+
+Current local upload candidates:
+
+- `docs/videos/liarline-demo-en-v1.mp4` - primary English Devpost video, recorded from `https://liarline.vercel.app/`.
+- `docs/videos/liarline-demo-ru-v1.mp4` - Russian companion video.
+
+Local proof:
+
+```bash
+npm run test:demo-video-package
+```
+
+Passing this gate proves the local video files, manifests, captions, audio stream, keyframes, current production deploy id, and no-overclaim boundary. It does not prove Devpost strict readiness until the selected video is uploaded and `LIARLINE_DEMO_VIDEO_URL` points at the public video URL.
 
 ## GitHub repository
 
@@ -124,6 +146,36 @@ npm run test:release-playthrough
 Paste-ready version:
 
 Liarline is a mobile-browser AI detective game where suspects can lie in live dialogue, but only evidence can convict. The player interrogates four suspects, catches a contradiction, builds a notebook, and makes one final accusation in a polished one-case mystery.
+
+## Final submission packet
+
+short description:
+
+Liarline is a mobile-browser AI social deduction detective game where suspects can lie, but only evidence can convict.
+
+What it does:
+
+Players interrogate four AI-performed suspects in one playable prototype-theft case, catch a guaranteed contradiction, compare Notebook evidence, and make one final accusation.
+
+AI use:
+
+Groq `llama-3.1-8b-instant` performs compact NPC dialogue through `/api/npc-turn`. The hidden truth table, clue unlocks, AP spend, accusation result, and resolution stay deterministic in the local game engine.
+
+Built with:
+
+Next.js App Router, React, Tailwind CSS v4, Lucide React, Groq API, LocalStorage persistence, Playwright, and Node release gates.
+
+Demo route:
+
+Start first question, show first live AI answer, connect camera-vs-cart contradiction, pressure Ivo after persona shift, open Notebook, submit Ivo/debt/two clues, show Resolution.
+
+No-overclaim boundary:
+
+Current release is one playable case. It does not include multiplayer, voice/video interrogation, accounts, unlimited generated cases, a full trial system, or a playable multi-case season.
+
+Demo video script:
+
+The 1-3 minute recording must show first AI answer inside the first 20 seconds, contradiction, persona shift, Notebook, accusation, and Resolution. Do not record old screenshots or fallback-run footage as live AI. Strict readiness still needs a real demo video URL in `LIARLINE_DEMO_VIDEO_URL`.
 
 ## AI use explanation
 
